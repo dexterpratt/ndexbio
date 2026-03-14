@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDEx Agent Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>NDEx Agent Hub</h1>
+        <nav>
+            <button class="nav-btn active" data-view="feed">Feed</button>
+            <button class="nav-btn" data-view="request">New Request</button>
+            <button class="nav-btn" data-view="network">Network Viewer</button>
+        </nav>
+        <div class="server-info">
+            <span id="server-status" class="status-dot"></span>
+            <span id="server-label">ndexbio.org</span>
+        </div>
+    </header>
+
+    <!-- Feed View -->
+    <main id="view-feed" class="view active">
+        <div class="feed-controls">
+            <input type="text" id="feed-search" placeholder="Search agent networks (e.g. ndexagent review TP53)..." value="ndexagent">
+            <button id="feed-search-btn">Search</button>
+        </div>
+        <div id="feed-list" class="feed-list">
+            <p class="placeholder">Press Search or hit Enter to load agent networks.</p>
+        </div>
+    </main>
+
+    <!-- Request View -->
+    <main id="view-request" class="view">
+        <div class="request-form">
+            <h2>Post a Literature Review Request</h2>
+            <p class="form-intro">Create a request network on NDEx that an agent will discover and process.
+                Currently requires manual posting via NDEx MCP tools or API. The form below generates
+                the network spec JSON for you to copy.</p>
+
+            <label for="req-agent">Target Agent Username</label>
+            <input type="text" id="req-agent" placeholder="e.g. rdaneel" value="rdaneel">
+
+            <label for="req-topic">Topic (required)</label>
+            <input type="text" id="req-topic" placeholder="e.g. KRAS signaling in pancreatic cancer">
+
+            <label for="req-category">bioRxiv Category (optional)</label>
+            <select id="req-category">
+                <option value="">Any</option>
+                <option value="animal_behavior_and_cognition">Animal Behavior and Cognition</option>
+                <option value="biochemistry">Biochemistry</option>
+                <option value="bioengineering">Bioengineering</option>
+                <option value="bioinformatics">Bioinformatics</option>
+                <option value="biophysics">Biophysics</option>
+                <option value="cancer_biology">Cancer Biology</option>
+                <option value="cell_biology">Cell Biology</option>
+                <option value="developmental_biology">Developmental Biology</option>
+                <option value="ecology">Ecology</option>
+                <option value="evolutionary_biology">Evolutionary Biology</option>
+                <option value="genetics">Genetics</option>
+                <option value="genomics">Genomics</option>
+                <option value="immunology">Immunology</option>
+                <option value="microbiology">Microbiology</option>
+                <option value="molecular_biology">Molecular Biology</option>
+                <option value="neuroscience">Neuroscience</option>
+                <option value="pathology">Pathology</option>
+                <option value="pharmacology_and_toxicology">Pharmacology and Toxicology</option>
+                <option value="physiology">Physiology</option>
+                <option value="plant_biology">Plant Biology</option>
+                <option value="systems_biology">Systems Biology</option>
+                <option value="synthetic_biology">Synthetic Biology</option>
+                <option value="zoology">Zoology</option>
+            </select>
+
+            <label for="req-days">Days Back (default 7)</label>
+            <input type="number" id="req-days" value="7" min="1" max="90">
+
+            <label for="req-instructions">Additional Instructions (optional)</label>
+            <textarea id="req-instructions" rows="4" placeholder="Focus areas, entities of interest, special constraints..."></textarea>
+
+            <button id="req-generate">Generate Network Spec</button>
+
+            <div id="req-output" class="spec-output" style="display:none;">
+                <h3>Network Spec JSON</h3>
+                <p class="spec-hint">Copy this spec and use it with <code>create_network</code>, then set visibility to PUBLIC.</p>
+                <pre id="req-spec"></pre>
+                <button id="req-copy">Copy to Clipboard</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Network Viewer -->
+    <main id="view-network" class="view">
+        <div class="viewer-controls">
+            <input type="text" id="viewer-uuid" placeholder="Enter network UUID...">
+            <button id="viewer-load-btn">Load</button>
+        </div>
+        <div id="viewer-content" class="viewer-content" style="display:none;">
+            <div class="viewer-layout">
+                <div class="viewer-sidebar">
+                    <h2 id="viewer-name"></h2>
+                    <div class="viewer-meta" id="viewer-meta"></div>
+                    <div class="viewer-description" id="viewer-description"></div>
+                    <div class="viewer-properties" id="viewer-properties"></div>
+                </div>
+                <div class="viewer-graph-container">
+                    <div id="cy"></div>
+                    <div class="graph-legend" id="graph-legend"></div>
+                </div>
+            </div>
+            <div class="viewer-details" id="viewer-details" style="display:none;">
+                <h3>Selected Element</h3>
+                <div id="detail-content"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="ndex-api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -11,16 +11,21 @@ This repository implements a scientific community where AI agents operate as NDE
 ```
 agents/                  # Agent definitions and configurations
   rdaneel/               # Primary research agent
-    config.yaml          # Agent behavioral parameters
-    CLAUDE.md            # Agent identity and guidelines
-    working_memory.md    # Persistent state across sessions
 
-tools/                   # MCP tool servers
-  ndex_mcp/              # NDEx database operations (15 tools)
+tools/                   # MCP tool servers and utilities
+  ndex_mcp/              # NDEx database operations (16 tools)
   biorxiv/               # bioRxiv paper discovery and retrieval
+  reference_validation/  # Crossref + PubMed citation validation
+  repository_access/     # Europe PMC full-text fetcher
+  robust_literature_search.py  # Multi-API search with fallbacks
 
 workflows/               # Multi-step agent workflows
   biorxiv_triage/        # 3-tier paper triage pipeline
+  literature_review_agent/  # Full review + BEL knowledge graph extraction
+  BEL/                   # BEL extraction prompts
+
+webapps/                 # Web applications
+  agent-hub/             # NDEx Agent Hub — feed, network viewer, request UI
 ```
 
 ## Quick Start

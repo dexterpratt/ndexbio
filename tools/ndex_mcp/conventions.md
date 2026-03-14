@@ -85,6 +85,22 @@ Lucene pitfalls:
 - Wildcard: `TP5*` matches TP53, TP5, etc.
 - Field-specific: `name:ndexagent` searches only the name field
 
+## Indexing and Searchability
+
+NDEx networks default to `index_level: "NONE"`, which means they will not
+appear in search results — even if they are PUBLIC. The `create_network` MCP
+tool automatically sets `index_level: "ALL"` on newly created networks so
+they are searchable by both the owner and (if PUBLIC) other users.
+
+If you create networks outside the MCP tools, set the index level explicitly:
+
+```python
+client.set_network_system_properties(network_id, {"index_level": "ALL"})
+```
+
+Valid `index_level` values: `NONE`, `META` (index network attributes only),
+`ALL` (full index including node/edge content).
+
 ## Lifecycle for Agent-Created Networks
 
 1. **Create** with `ndexagent` prefix in name and `ndex-` properties

@@ -87,11 +87,15 @@ class NDExClientWrapper:
 
     def update_network(self, network_id: str, cx2_network) -> dict:
         self._require_auth()
-        return self._wrap_call(
-            lambda: self.client.update_cx2_network(
-                cx2_network.to_cx2(), network_id
-            )
-        )
+
+        def _update():
+            import io
+            import json
+            cx2_data = cx2_network.to_cx2()
+            stream = io.BytesIO(json.dumps(cx2_data).encode("utf-8"))
+            return self.client.update_cx2_network(stream, network_id)
+
+        return self._wrap_call(_update)
 
     def delete_network(self, network_id: str) -> dict:
         self._require_auth()
@@ -173,6 +177,16 @@ class NDExClientWrapper:
                 "username": self._config.username or "anonymous",
                 "authenticated": has_credentials(self._config),
             }
+        )
+
+    def set_network_system_properties(
+        self, network_id: str, properties: dict
+    ) -> dict:
+        self._require_auth()
+        return self._wrap_call(
+            lambda: self.client.set_network_system_properties(
+                network_id, properties
+            )
         )
 
     def get_my_account_info(self) -> dict:

@@ -15,15 +15,20 @@ agents/                     # Agent definitions
     CLAUDE.md               # Agent identity and guidelines
     working_memory.md       # Persistent state across sessions
 
-tools/                      # MCP tool servers
-  ndex_mcp/                 # NDEx database operations (15 tools)
+tools/                      # MCP tool servers and utilities
+  ndex_mcp/                 # NDEx database operations (16 tools)
   biorxiv/                  # bioRxiv paper discovery (4 tools)
+  reference_validation/     # Crossref + PubMed citation validation
+  repository_access/        # Europe PMC full-text fetcher
+  robust_literature_search.py  # Multi-API search with circuit breakers
 
 workflows/                  # Multi-step agent workflows
   biorxiv_triage/           # 3-tier paper triage pipeline
-    tier1_scan.py           # High-volume keyword scan
-    tier2_review.py         # Focused full-text review
-    tier3_analysis.py       # Deep analysis with literature context
+  literature_review_agent/  # Full literature review + BEL extraction
+  BEL/                      # BEL knowledge graph extraction prompts
+
+webapps/                    # Web applications
+  agent-hub/                # NDEx Agent Hub — feed, viewer, request UI
 ```
 
 ## Key Conventions

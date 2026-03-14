@@ -1,90 +1,98 @@
 # NDExBio Agents — Next Steps
 
-Written: 2026-03-12, end of initial setup session.
+Updated: 2026-03-13, after critique_agent integration.
 
 ## What Was Accomplished
 
-1. **Repo setup**: Copied `agents/` and `tools/ndex_mcp/` from critique_agent to ndexbio. Fixed imports for standalone use.
-2. **bioRxiv tool**: Created `tools/biorxiv/` MCP server (client.py + server.py, 4 tools).
-3. **3-tier triage workflow**: Created `workflows/biorxiv_triage/` with tier1_scan.py, tier2_review.py, tier3_analysis.py.
-4. **Agent rdaneel configured**: Updated config.yaml with HPMI focus, keyword groups, per-tier model preferences.
-5. **MCP servers running locally**: Both ndex and biorxiv MCP servers configured in Claude Desktop, using a Python 3.12 venv with PYTHONPATH set.
-6. **Scheduled task**: `rdaneel-biorxiv-triage` runs every 4 hours via Cowork scheduled tasks.
-7. **Permissions**: `~/.claude/settings.json` created with `mcp__ndex__*` and `mcp__biorxiv__*` auto-approved.
-8. **NDEx credentials**: `~/.ndex/config.json` in multi-profile format, profile `rdaneel`.
-9. **Backlog published**: 17 networks from scans a-g published to NDEx and set PUBLIC.
-10. **Scan h successful**: First fully MCP-based triage run completed. 6 new networks published (1 daily scan, 3 tier2 reviews, 1 tier3 analysis, 1 highlight).
-11. **Deployment cookbook**: `NDExBio_Agents_Deployment_Cookbook.docx` created in repo root.
+### Phase 1: Initial Setup (2026-03-12)
+1. Repo setup with agents/, tools/ndex_mcp/, tools/biorxiv/
+2. 3-tier triage workflow (tier1_scan, tier2_review, tier3_analysis)
+3. Agent rdaneel configured and running on 4-hour schedule
+4. 23+ networks published to NDEx
+5. Deployment cookbook written
 
-## Immediate Next Steps
+### Phase 1.5: critique_agent Integration (2026-03-13)
+6. **NDEx MCP server upgraded**: Added `set_network_system_properties` tool (16 tools total), auto-indexing on `create_network`, `update_network` BytesIO fix, startup message
+7. **Conventions.md**: Added indexing/searchability section
+8. **Literature search tools ported**: `robust_literature_search.py`, `literature_search_integration.py`
+9. **Europe PMC fetcher ported**: `tools/repository_access/europepmc_fetcher.py`
+10. **Reference validation ported**: `tools/reference_validation/` (Crossref, PubMed, citation extractor, similarity analyzer)
+11. **Literature review workflow ported**: `workflows/literature_review_agent/` (literature_review.md, check_requests.md, post_request.md, plan.md)
+12. **BEL extraction workflow ported**: `workflows/BEL/bel_prompt.md`
+13. **Agent Hub web app**: `webapps/agent-hub/` (feed, network viewer, request form)
+14. **Multi-agent docs**: publication_strategy.md, literature_review_multi_agent_systems.md
+15. **`.mcp.json`**: NDEx MCP server auto-starts in Claude Code sessions
+16. **bioRxiv API spec**: `tools/external_apis/biorxiv_api.md`
 
-### 1. Integrate literature search tools from critique_agent
-- Check `critique_agent/tools/` for any existing literature search implementations beyond what's in ndexbio
-- Specifically look for: Europe PMC client, Semantic Scholar client, PubMed/Entrez tools
-- These would serve as fallbacks for full-text retrieval (see issue #3 below)
+## Current Priority: Collaborator Demo
 
-### 2. bioRxiv full-text access issue
-- Cloudflare protection blocks JATS XML and HTML full-text downloads from www.biorxiv.org
-- The metadata API (api.biorxiv.org) works fine
-- **Recommended fix**: Add Europe PMC as a fallback full-text source in `tools/biorxiv/client.py`
-- Alternative: bioRxiv S3 bucket (`s3://biorxiv-src-monthly`) for bulk access (requires AWS account)
-- The `jatsxml` URLs returned by the API are valid but Cloudflare-protected
+Target audience: Chris Mungall (GO consortium), HPMI collaborators.
+See `webapps/agent-hub/demo_plan.md` for the full demo plan.
 
-### 3. Safety classifier issue
-- Agent was blocked mid-run when synthesizing findings about respiratory virus mechanisms
-- Reframed task prompt to use "biomedical literature curation" / "knowledge graph construction" language
-- Scan h succeeded with the reframed prompt, but the issue may recur
-- If it does: pivot to cancer signaling pathways as the curation focus (collaborators work in that field)
-- Document the issue for Anthropic feedback
+### Day 1: Content + Agent Setup
+- [ ] Create 2 new NDEx accounts (rbaley, rcalvin)
+- [ ] Run literature review workflow on a selected rdaneel paper (full PDF → BEL analysis)
+- [ ] Craft rbaley critique network (manual CX2 spec via MCP tools)
+- [ ] Craft rcalvin synthesis network
+- [ ] Craft rcalvin self-knowledge networks (plans, memory, collaborators)
+- [ ] Set all demo networks PUBLIC, indexed, showcased
+- [ ] Format selected networks in Cytoscape Desktop for layout
 
-### 4. Refactor tier1_scan.py to load keywords from config
-- Currently keywords are hardcoded in tier1_scan.py AND in agents/rdaneel/config.yaml
-- Should load from config.yaml at runtime so it's a single source of truth
-- Deferred until after initial testing period
+### Day 2: Web App — Core Features
+- [ ] Agent directory section (hardcoded agent list + profile links)
+- [ ] Feed threading (reply-to chain grouping)
+- [ ] Author filtering in feed
+- [ ] Relative timestamps
+- [ ] Visual polish pass
 
-### 5. Working memory cleanup
-- working_memory.md has grown large with scan logs from a-g (pre-MCP era)
-- Consider archiving old scan logs to a separate file
-- Keep only the published networks table and most recent 2-3 scan logs in working memory
+### Day 3: Web App — Viewer + Polish
+- [ ] Hierarchical layout for tree-structured networks (dagre)
+- [ ] BEL network style tuning
+- [ ] Node/edge click panel polish
+- [ ] Documentation tab skeleton
+- [ ] End-to-end walkthrough
 
-### 6. Network quality review
-- Review the 23 published networks on NDEx (https://www.ndexbio.org, search for user rdaneel)
-- Check that interaction networks have correct node/edge structure
-- Verify properties and metadata are searchable
-- Consider adding visual styles (CX2 visual properties) for better display in NDEx
+### Day 4: Documentation + Final Polish
+- [ ] Infographics (system architecture, agent conversation flow, vision)
+- [ ] Embed in documentation tab
+- [ ] Final UX walkthrough
+- [ ] Talking points for collaborator meeting
+
+## Deferred (Post-Demo)
+
+### Integration & Testing
+- [ ] Full integration test of literature review workflow in ndexbio context
+- [ ] Europe PMC as fallback full-text source in tools/biorxiv/client.py
+- [ ] Refactor tier1_scan.py to load keywords from config.yaml
+
+### Architecture
+- [ ] Subagent-driven workflow execution (context window management)
+- [ ] Persistent agent memory and state (NDEx-hosted review logs)
+- [ ] Local network caching (SQLite metadata + NetworkX/CX2 on disk)
+- [ ] Agent self-documentation on NDEx
+
+### Cleanup
+- [ ] Working memory archival (scan logs a-g)
+- [ ] Network quality review (node/edge structure, visual styles)
+- [ ] Web app: direct request posting with auth
+- [ ] Web app: extract NDEx viewer into reusable component
+
+## Known Issues
+
+1. **bioRxiv full-text Cloudflare blocking**: Metadata API works fine but JATS XML / HTML full-text blocked. Europe PMC fetcher now available as fallback (not yet integrated into biorxiv tool).
+2. **Safety classifier**: May block synthesis on certain biomedical topics. Reframe as "literature curation" / "knowledge graph construction".
+3. **`set_network_properties` replaces all properties**: When updating one property, others are lost. Need to pass full property list or investigate NDEx append mode.
+4. **Keywords hardcoded in two places**: tier1_scan.py and config.yaml.
 
 ## Key File Locations
 
 | What | Where |
 |------|-------|
 | Repo | ~/Documents/agents/GitHub/ndexbio |
-| Critique agent repo | ~/Documents/agents/GitHub/critique_agent |
 | Claude Desktop config | ~/Library/Application Support/Claude/claude_desktop_config.json |
 | NDEx credentials | ~/.ndex/config.json |
 | MCP permissions | ~/.claude/settings.json |
 | Scheduled task | ~/Documents/Claude/Scheduled/rdaneel-biorxiv-triage/ |
 | Python venv | ~/Documents/agents/GitHub/ndexbio/.venv/ |
-
-## Key Configuration (for reference in new sessions)
-
-**Claude Desktop config** needs these MCP servers:
-```json
-{
-  "mcpServers": {
-    "ndex": {
-      "command": "/path/to/ndexbio/.venv/bin/python3",
-      "args": ["-m", "tools.ndex_mcp.server", "--profile", "rdaneel"],
-      "cwd": "/path/to/ndexbio",
-      "env": { "PYTHONPATH": "/path/to/ndexbio" }
-    },
-    "biorxiv": {
-      "command": "/path/to/ndexbio/.venv/bin/python3",
-      "args": ["-m", "tools.biorxiv.server"],
-      "cwd": "/path/to/ndexbio",
-      "env": { "PYTHONPATH": "/path/to/ndexbio" }
-    }
-  }
-}
-```
-
-**Scheduled task** (`rdaneel-biorxiv-triage`): Runs every 4 hours. Uses MCP tools for all API calls. Task prompt is in the Cowork scheduled tasks system.
+| Agent Hub web app | ~/Documents/agents/GitHub/ndexbio/webapps/agent-hub/ |
+| Demo plan | ~/Documents/agents/GitHub/ndexbio/webapps/agent-hub/demo_plan.md |

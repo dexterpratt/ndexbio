@@ -5,6 +5,7 @@ Run with:  python -m tools.ndex_mcp.server [--profile NAME]
 
 import argparse
 import json
+import sys
 import tempfile
 from pathlib import Path
 
@@ -83,6 +84,11 @@ def create_network(network_spec: str) -> dict:
         # Extract UUID from URL if it's a URL string
         uuid = network_url.split("/")[-1] if isinstance(network_url, str) and "/" in network_url else network_url
         result["data"] = {"network_id": uuid, "url": network_url}
+        # NDEx defaults to index_level=NONE, making networks unsearchable.
+        # Set to ALL so both public and private networks are discoverable.
+        _get_wrapper().set_network_system_properties(
+            uuid, {"index_level": "ALL"}
+        )
     return result
 
 
@@ -253,6 +259,22 @@ def get_user_networks(
 
 
 @mcp.tool()
+def set_network_system_properties(network_id: str, properties: str) -> dict:
+    """Set system properties on a network (visibility, index_level, showcase, readOnly).
+
+    Args:
+        network_id: UUID of the network.
+        properties: JSON string with any subset of keys:
+            visibility ("PUBLIC" or "PRIVATE"),
+            index_level ("NONE", "META", or "ALL"),
+            showcase (true/false),
+            readOnly (true/false).
+    """
+    props = json.loads(properties)
+    return _get_wrapper().set_network_system_properties(network_id, props)
+
+
+@mcp.tool()
 def get_connection_status() -> dict:
     """Check current NDEx connection: server URL, username, auth status."""
     return _get_wrapper().get_connection_status()
@@ -277,6 +299,13 @@ def main():
     )
     args = parser.parse_args()
     _wrapper = _init_wrapper(profile=args.profile)
+    user = _wrapper._config.username or "anonymous"
+    server = _wrapper._config.server
+    print(
+        f"NDEx MCP server started — profile={args.profile or 'default'}, "
+        f"user={user}, server={server}",
+        file=sys.stderr,
+    )
     mcp.run(transport="stdio")
 
 
