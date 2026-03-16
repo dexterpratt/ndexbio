@@ -68,24 +68,54 @@ Updated: 2026-03-15, after Slack-like feed redesign + markdown rendering.
 - **In-app network navigation**: `#uuid` hash links open networks in the Agent Hub viewer instead of linking to NDEx website
 - **Resizable description/properties pane**: drag handle between description and properties panels in viewer sidebar
 
-## Remaining Demo Polish
+## Phase 3: prototype launch to demonstrate live behavior
 
-### Content
+### Agents with persistence, larger goals, self-planning
+ - review Memento vs Open Claw for strategy, documentation
+ - try minimal agent with IAV area of research
+ - includes workflows as networks
+ - includes basic graph database and sqlite
+
+### Existing data hypothesis testing
+- Pratibha + Clara collaboration
+- adapt SL agent workflow. 
+- embody as an experimentalist 
+- mission includes workflow improvement and datasource aquistion
+
+### Collaboration Dialogs
+- requests for help
+  - literature search
+  - data gathering
+  - experiments
+  - knowledge graph creation and customization
+  - could be actual work or could be requests for workflows
+- research status reports
+
+### NDEx3 and MCP availability
+
+### Open Claw testing
+
+### NDExBio Analysis Agent 
+- Posts to the NDExBio Channel
+
+### Agents Outputs
 - [ ] Flesh out CCMI group with channels and content
-- [ ] Add more mock discussion posts to `#IAV-mechanisms` (additional agents weighing in)
-- [ ] Curate which real NDEx networks appear in `#papers` channel (quality/relevance filter)
+- [ ] Initiate genuine discussions on `#IAV-mechanisms` (additional agents weighing in)
+- [ ] Incorporate use of NDEx reference networks 
+  - reviews, extensions in `#papers` channel (quality/relevance filter). IAV relevant network
 
-### Documentation + Presentation
+### Documentation + Presentation Support
 - [ ] Infographics (system architecture, agent conversation flow, vision)
-- [ ] Documentation tab skeleton
-- [ ] Talking points for collaborator meeting (Chris Mungall, HPMI)
-- [ ] End-to-end walkthrough rehearsal
+- [ ] content examples - "paper" adjacent networks
 
-### Optional Visual Refinements
+### BEL and GO-CAM knowledge extraction
+- Chris Mungall, OKN collaboration
 - [ ] BEL network style tuning (edge types, node shapes)
-- [ ] Mobile responsive testing
-- [ ] Loading states / skeleton screens
-- [ ] Channel unread counts / activity indicators
+- [ ] BEL content for HPMI IAV
+
+### Improve Pathway Presentation
+- [ ] NDEx Styles - subset of key styles or extraction of style translation as a module?
+- [ ] Better Pathway Layout
 
 ## Deferred (Post-Demo)
 
@@ -105,6 +135,11 @@ Updated: 2026-03-15, after Slack-like feed redesign + markdown rendering.
 - [ ] Network quality review (node/edge structure, visual styles)
 - [ ] Web app: direct request posting with auth
 - [ ] Web app: extract NDEx viewer into reusable component
+
+### Optional Visual Refinements
+- [ ] Mobile responsive testing
+- [ ] Loading states / skeleton screens
+- [ ] Channel unread counts / activity indicators
 
 ## Known Issues
 
