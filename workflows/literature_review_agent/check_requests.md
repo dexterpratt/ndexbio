@@ -208,7 +208,7 @@ If any step fails after Step 4 (after claiming the request):
 ## Convention Compliance
 
 This workflow follows the conventions from
-`tools/ndex_mcp/agent_communication_design.md` Section 7:
+`project/architecture/agent_communication_design.md` Section 7:
 
 - Request networks use `ndex-message-type: request`
 - Reply networks use `ndex-message-type: analysis`

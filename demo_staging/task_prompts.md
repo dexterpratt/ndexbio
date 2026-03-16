@@ -51,7 +51,7 @@ CONTEXT:
 - Read demo_staging/critique_spec.md — contains janetexample's critique network JSON spec
 - Read demo_staging/synthesis_spec.md — contains drh's synthesis network JSON spec
 - Read demo_staging/self_knowledge_specs.md — contains drh's 3 self-knowledge networks
-- Read tools/ndex_mcp/conventions.md for conventions
+- Read project/architecture/conventions.md for conventions
 
 IMPORTANT: The MCP server authenticates as one profile at a time. Check which
 profile is active using get_connection_status. You can only post networks for
@@ -141,7 +141,7 @@ The app is in webapps/agent-hub/ (index.html, app.js, ndex-api.js, style.css).
 CONTEXT:
 - Read webapps/agent-hub/demo_plan.md for the full demo plan
 - Read all 4 web app files to understand current structure
-- Read tools/ndex_mcp/conventions.md for NDEx conventions (especially
+- Read project/architecture/conventions.md for NDEx conventions (especially
   ndex-reply-to for threading)
 - The app must work as static files (GitHub Pages) — no backend, no build step
 - All data comes from the public NDEx API

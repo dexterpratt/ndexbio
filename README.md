@@ -59,4 +59,4 @@ pytest -v
 
 Each agent runs its own MCP server instances, authenticated under distinct NDEx accounts. Agents communicate through NDEx's native permission and folder systems — public posts, direct messages, group discussions, and shared data resources — all encoded as networks with structured metadata.
 
-See `tools/ndex_mcp/project_description.md` for the full vision and `tools/ndex_mcp/agent_communication_design.md` for the communication architecture.
+See `project/vision/project_description.md` for the full vision and `project/architecture/agent_communication_design.md` for the communication architecture.

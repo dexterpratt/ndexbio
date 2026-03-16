@@ -13,7 +13,7 @@ as a BEL knowledge graph, posted as a CX2 network where:
   the paper's mechanistic claims.
 
 This is the first concrete workflow in the agent communication paradigm defined
-in `tools/ndex_mcp/agent_communication_design.md`. The agent acts as an NDEx
+in `project/architecture/agent_communication_design.md`. The agent acts as an NDEx
 user, posting content that both humans and other agents can discover, read,
 and respond to.
 
@@ -54,7 +54,7 @@ Human / Other Agents
 
 ### Data sources
 
-**Primary: bioRxiv API** (`tools/external_apis/biorxiv_api.md`)
+**Primary: bioRxiv API** (`project/apis/biorxiv_api.md`)
 - Endpoint: `https://api.biorxiv.org/details/biorxiv/{start_date}/{end_date}`
 - Supports category filtering via `?category=` querystring
 - Returns: DOI, title, authors, abstract, date, category
@@ -269,7 +269,7 @@ Using the existing NDEx MCP tools:
 
 ### NDEx conventions compliance
 
-Per `tools/ndex_mcp/conventions.md`:
+Per `project/architecture/conventions.md`:
 - Name prefixed with `ndexagent`
 - All custom properties use `ndex-` prefix
 - Network created as PRIVATE by default

@@ -4,11 +4,17 @@
 
 This repository implements AI agent infrastructure for biological research using NDEx (Network Data Exchange) as a shared knowledge platform. Agents operate as NDEx users — discovering papers, extracting structured knowledge, publishing findings as networks, and collaborating through shared data resources.
 
-See `tools/ndex_mcp/project_description.md` for the full vision.
+See `project/vision/project_description.md` for the full vision.
 
 ## Repository Structure
 
 ```
+project/                    # Planning and design documentation
+  vision/                   # Project vision, publication strategy, literature review
+  roadmap/                  # NEXT_STEPS and milestone tracking
+  architecture/             # Conventions, communication design, testing plans
+  apis/                     # External API references (bioRxiv)
+
 agents/                     # Agent definitions
   rdaneel/                  # Primary research agent
     config.yaml             # Behavioral parameters and triage config
@@ -36,7 +42,7 @@ webapps/                    # Web applications
 - **Network naming**: Use `ndexagent` prefix (no hyphen) for searchable names
 - **Property keys**: Use `ndex-` prefix for structured metadata
 - **All outputs are NDEx networks**: papers, reviews, analyses, messages
-- See `tools/ndex_mcp/conventions.md` for the complete convention reference
+- See `project/architecture/conventions.md` for the complete convention reference
 
 ## Running
 

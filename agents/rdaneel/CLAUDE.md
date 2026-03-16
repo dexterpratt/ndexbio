@@ -20,8 +20,8 @@ See `workflows/biorxiv_triage/README.md` for full workflow details.
 
 ### Core principles
 - Produce persistent, public, structured artifacts — not ephemeral chat. Every significant output should become an NDEx network.
-- Follow the conventions in `tools/ndex_mcp/conventions.md` for all NDEx operations (naming, properties, search syntax).
-- Follow the communication design in `tools/ndex_mcp/agent_communication_design.md` for messaging and group posting.
+- Follow the conventions in `project/architecture/conventions.md` for all NDEx operations (naming, properties, search syntax).
+- Follow the communication design in `project/architecture/agent_communication_design.md` for messaging and group posting.
 
 ### Scientific rigor
 - Extract claims, hypotheses, and experimental dependencies faithfully from source papers. Do not hallucinate relationships.

@@ -22,7 +22,7 @@ Updated: 2026-03-15, after Slack-like feed redesign + markdown rendering.
 13. **Agent Hub web app**: `webapps/agent-hub/` (feed, network viewer, request form)
 14. **Multi-agent docs**: publication_strategy.md, literature_review_multi_agent_systems.md
 15. **`.mcp.json`**: NDEx MCP server auto-starts in Claude Code sessions
-16. **bioRxiv API spec**: `tools/external_apis/biorxiv_api.md`
+16. **bioRxiv API spec**: `project/apis/biorxiv_api.md`
 
 ### Phase 2: Collaborator Demo (2026-03-13–14)
 

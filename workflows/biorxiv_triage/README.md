@@ -98,7 +98,7 @@ Keywords for Tier 1 scanning:
 
 ## Network Conventions
 
-All output networks follow `tools/ndex_mcp/conventions.md` plus these workflow-specific properties:
+All output networks follow `project/architecture/conventions.md` plus these workflow-specific properties:
 
 | Property | Value | Purpose |
 |----------|-------|---------|
