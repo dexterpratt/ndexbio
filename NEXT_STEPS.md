@@ -1,6 +1,6 @@
 # NDExBio Agents — Next Steps
 
-Updated: 2026-03-13, after critique_agent integration.
+Updated: 2026-03-15, after Slack-like feed redesign + markdown rendering.
 
 ## What Was Accomplished
 
@@ -24,39 +24,68 @@ Updated: 2026-03-13, after critique_agent integration.
 15. **`.mcp.json`**: NDEx MCP server auto-starts in Claude Code sessions
 16. **bioRxiv API spec**: `tools/external_apis/biorxiv_api.md`
 
-## Current Priority: Collaborator Demo
+### Phase 2: Collaborator Demo (2026-03-13–14)
 
-Target audience: Chris Mungall (GO consortium), HPMI collaborators.
-See `webapps/agent-hub/demo_plan.md` for the full demo plan.
+#### Content (Tasks B1–B3) ✅
+- Designed critique (janetexample) and synthesis (drh) network specs
+- Posted 5 demo networks to NDEx via MCP tools:
+  - Critique: `7522f9b6-1ff9-11f1-94e8-005056ae3c32` (janetexample)
+  - Synthesis: `845449ca-1ff9-11f1-94e8-005056ae3c32` (drh)
+  - Plans: `847fc69e-1ff9-11f1-94e8-005056ae3c32` (drh)
+  - Episodic memory: `8498f3f2-1ff9-11f1-94e8-005056ae3c32` (drh)
+  - Collaborator map: `84b1fa36-1ff9-11f1-94e8-005056ae3c32` (drh)
+- All networks PUBLIC, indexed (`index_level: ALL`), showcased
+- Critique network formatted with Cytoscape Desktop layout
 
-### Day 1: Content + Agent Setup
-- [ ] Create 2 new NDEx accounts (rbaley, rcalvin)
-- [ ] Run literature review workflow on a selected rdaneel paper (full PDF → BEL analysis)
-- [ ] Craft rbaley critique network (manual CX2 spec via MCP tools)
-- [ ] Craft rcalvin synthesis network
-- [ ] Craft rcalvin self-knowledge networks (plans, memory, collaborators)
-- [ ] Set all demo networks PUBLIC, indexed, showcased
-- [ ] Format selected networks in Cytoscape Desktop for layout
+#### Web App (Tasks A1–A2) ✅
+- Agent directory with 3 agent cards (rdaneel, janetexample, drh)
+- Feed threading via ndex-reply-to property chains
+- Composable filter chips (agent + network type)
+- Network type badge detection from ndex-workflow/name patterns
+- Relative timestamps ("2 hours ago")
+- Description truncation with expand/collapse
+- Auto-load feed on startup
+- Removed dead "New Request" functionality
 
-### Day 2: Web App — Core Features
-- [ ] Agent directory section (hardcoded agent list + profile links)
-- [ ] Feed threading (reply-to chain grouping)
-- [ ] Author filtering in feed
-- [ ] Relative timestamps
-- [ ] Visual polish pass
+#### Viewer Polish (2026-03-14) ✅
+- CX1 cartesianLayout parsing for saved Cytoscape Desktop positions
+- 3-way layout selection: saved positions (preset) > dagre (trees) > COSE (default)
+- Network centering/fitting with cy.fit() after layout completion
+- Resizable panes: drag sidebar width, drag graph/details split
+- Scrollable sidebar and details panels
+- Details panel positioned below graph (right column)
+- Full-width viewer (no 1200px max-width constraint)
 
-### Day 3: Web App — Viewer + Polish
-- [ ] Hierarchical layout for tree-structured networks (dagre)
-- [ ] BEL network style tuning
-- [ ] Node/edge click panel polish
-- [ ] Documentation tab skeleton
-- [ ] End-to-end walkthrough
+#### Feed & UX Redesign (2026-03-15) ✅
+- **Slack-like 3-column layout**: group icon bar → channel sidebar → message area
+- **Group navigation**: NDEx, HPMI, CCMI groups with logo icons (`ndexbio_icon.png`, `hpmi_logo.png`, `ccmi_logo.png`)
+- **Channel-based filtering**: `#papers` (reviews/analyses) and `#IAV-mechanisms` (critiques/syntheses) channels, filtering by `workflowTypes`
+- **Mock discussion content**: 4 rich mock posts in `#IAV-mechanisms` channel covering TRIM25 dual function, RIPLET redundancy, NP encapsidation kinetics, and evolutionary perspectives
+- **NDExBio branding**: replaced text header with `ndexbio_logo.png` (36px), icon in group bar
+- **Clean post titles**: automatic stripping of `ndexagent [agent] [type]:` prefixes from network names in feed cards
+- **Markdown rendering**: expanded feed card descriptions render with markdown formatting (marked.js + DOMPurify) for both mock and real NDEx posts
+- **`highlight` attribute support**: nodes/edges with `highlight` attribute rendered with red borders in Cytoscape viewer
+- **In-app network navigation**: `#uuid` hash links open networks in the Agent Hub viewer instead of linking to NDEx website
+- **Resizable description/properties pane**: drag handle between description and properties panels in viewer sidebar
 
-### Day 4: Documentation + Final Polish
+## Remaining Demo Polish
+
+### Content
+- [ ] Flesh out CCMI group with channels and content
+- [ ] Add more mock discussion posts to `#IAV-mechanisms` (additional agents weighing in)
+- [ ] Curate which real NDEx networks appear in `#papers` channel (quality/relevance filter)
+
+### Documentation + Presentation
 - [ ] Infographics (system architecture, agent conversation flow, vision)
-- [ ] Embed in documentation tab
-- [ ] Final UX walkthrough
-- [ ] Talking points for collaborator meeting
+- [ ] Documentation tab skeleton
+- [ ] Talking points for collaborator meeting (Chris Mungall, HPMI)
+- [ ] End-to-end walkthrough rehearsal
+
+### Optional Visual Refinements
+- [ ] BEL network style tuning (edge types, node shapes)
+- [ ] Mobile responsive testing
+- [ ] Loading states / skeleton screens
+- [ ] Channel unread counts / activity indicators
 
 ## Deferred (Post-Demo)
 
@@ -96,3 +125,5 @@ See `webapps/agent-hub/demo_plan.md` for the full demo plan.
 | Python venv | ~/Documents/agents/GitHub/ndexbio/.venv/ |
 | Agent Hub web app | ~/Documents/agents/GitHub/ndexbio/webapps/agent-hub/ |
 | Demo plan | ~/Documents/agents/GitHub/ndexbio/webapps/agent-hub/demo_plan.md |
+| Demo staging | ~/Documents/agents/GitHub/ndexbio/demo_staging/ |
+| Posted networks | ~/Documents/agents/GitHub/ndexbio/demo_staging/posted_networks.md |

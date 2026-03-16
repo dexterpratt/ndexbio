@@ -43,17 +43,29 @@ const NdexApi = {
     },
 
     /**
-     * Get networks owned by a user.
+     * Get public networks owned by a user (no auth required).
+     * Uses search API with account_name filter instead of the
+     * authenticated user endpoint.
      */
     async getUserNetworks(username, offset = 0, limit = 20) {
-        // First get user UUID
-        const userResp = await fetch(`${V2_BASE}/user?username=${encodeURIComponent(username)}`);
-        if (!userResp.ok) throw new Error(`User lookup failed: ${userResp.status}`);
-        const user = await userResp.json();
-        const userId = user.externalId;
-
-        const resp = await fetch(`${V2_BASE}/user/${userId}/networksummary?offset=${offset}&limit=${limit}`);
+        const resp = await fetch(`${V2_BASE}/search/network?start=${offset}&size=${limit}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ searchString: '*', accountName: username }),
+        });
         if (!resp.ok) throw new Error(`User networks failed: ${resp.status}`);
+        const data = await resp.json();
+        // Return the networks array to match the expected format
+        return data.networks || [];
+    },
+
+    /**
+     * Get user profile info (externalId, displayName, etc).
+     * The user lookup endpoint is public.
+     */
+    async getUserProfile(username) {
+        const resp = await fetch(`${V2_BASE}/user?username=${encodeURIComponent(username)}`);
+        if (!resp.ok) throw new Error(`User lookup failed: ${resp.status}`);
         return resp.json();
     },
 
@@ -107,6 +119,7 @@ const NdexApi = {
         const rawNodes = [];   // {po (node id), n (attr name), v (attr value), d (datatype)}
         const nodeAttrs = {};  // nodeId -> {attrName: value}
         const edgeAttrs = {};  // edgeId -> {attrName: value}
+        const nodePositions = {};  // nodeId -> {x, y}
 
         for (const aspect of cxData) {
             if (aspect.nodes) {
@@ -133,6 +146,10 @@ const NdexApi = {
                     if (!edgeAttrs[edgeId]) edgeAttrs[edgeId] = {};
                     edgeAttrs[edgeId][a.n] = a.v;
                 }
+            } else if (aspect.cartesianLayout) {
+                for (const pos of aspect.cartesianLayout) {
+                    nodePositions[pos.node] = { x: pos.x, y: pos.y };
+                }
             } else if (aspect.networkAttributes) {
                 for (const a of aspect.networkAttributes) {
                     result.networkAttributes[a.n] = a.v;
@@ -143,13 +160,18 @@ const NdexApi = {
             }
         }
 
-        // Build unified nodes
+        // Build unified nodes (with positions if available)
         for (const n of rawNodes) {
             const id = n['@id'];
             const attrs = nodeAttrs[id] || {};
             attrs.name = attrs.name || n.n || n.r || `node_${id}`;
             if (n.r && n.r !== attrs.name) attrs.represents = n.r;
-            result.nodes.push({ id: id, v: attrs });
+            const node = { id: id, v: attrs };
+            if (nodePositions[id]) {
+                node.x = nodePositions[id].x;
+                node.y = nodePositions[id].y;
+            }
+            result.nodes.push(node);
         }
 
         // Build unified edges
