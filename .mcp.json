@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "ndex": {
+      "command": ".venv/bin/python3",
+      "args": ["-m", "tools.ndex_mcp.server", "--profile", "rdaneel"],
+      "cwd": "."
+    }
+  }
+}

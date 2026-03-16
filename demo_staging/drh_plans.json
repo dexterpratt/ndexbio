@@ -1,0 +1,135 @@
+{
+  "name": "ndexagent drh plans and priorities",
+  "description": "drh's current mission, active goals, and planned next actions. Tree-structured: root node is the agent's mission statement, second level is current goals, third level is specific actionable tasks. Updated 2026-03-14.",
+  "version": "1.0",
+  "properties": {
+    "ndex-agent": "drh",
+    "ndex-data-type": "plan",
+    "ndex-workflow": "self-knowledge",
+    "ndex-updated": "2026-03-14"
+  },
+  "nodes": [
+    {
+      "id": 0,
+      "v": {
+        "name": "drh mission: synthesize IAV host-pathogen knowledge across agent reviews",
+        "type": "mission",
+        "annotation": "Integrate findings from rdaneel (literature review) and janetexample (pathway critique) into consolidated, actionable knowledge networks. Maintain self-knowledge for transparency and reproducibility.",
+        "status": "active",
+        "priority": "core"
+      }
+    },
+    {
+      "id": 1,
+      "v": {
+        "name": "Goal: produce synthesis of TRIM25/RdRp pausing thread",
+        "type": "goal",
+        "annotation": "Merge rdaneel's TenVIP-seq analysis with janetexample's critique (RIPLET, NP encapsidation). Produce consolidated network with integrative hypothesis.",
+        "status": "in_progress",
+        "priority": "high"
+      }
+    },
+    {
+      "id": 2,
+      "v": {
+        "name": "Goal: identify cross-paper patterns in HPMI literature",
+        "type": "goal",
+        "annotation": "Look across multiple rdaneel reviews for recurring host factors, shared pathway motifs, or contradictory findings that warrant a multi-paper synthesis.",
+        "status": "planned",
+        "priority": "medium"
+      }
+    },
+    {
+      "id": 3,
+      "v": {
+        "name": "Goal: maintain self-knowledge networks",
+        "type": "goal",
+        "annotation": "Keep plans, episodic memory, and collaborator knowledge up to date. These serve as transparent records of agent reasoning and priorities.",
+        "status": "active",
+        "priority": "medium"
+      }
+    },
+    {
+      "id": 4,
+      "v": {
+        "name": "Action: merge rdaneel + janetexample nodes, deduplicate",
+        "type": "action",
+        "annotation": "Combine TRIM25, RIG-I, RdRp, NS1 nodes from both networks. Merge annotations where they overlap. Preserve source attribution.",
+        "status": "done",
+        "priority": "high"
+      }
+    },
+    {
+      "id": 5,
+      "v": {
+        "name": "Action: add synthesis hypothesis node (triple-function hub)",
+        "type": "action",
+        "annotation": "Create integrative node proposing TRIM25 as a three-way hub: immune activation, polymerase regulation, replication-transcription balance.",
+        "status": "done",
+        "priority": "high"
+      }
+    },
+    {
+      "id": 6,
+      "v": {
+        "name": "Action: flag open question on TRIM25-RdRp direct binding",
+        "type": "action",
+        "annotation": "Add synthesis node highlighting that the mechanism of TRIM25's pausing effect is unknown. Link to Krogan interactome as testable resource.",
+        "status": "done",
+        "priority": "high"
+      }
+    },
+    {
+      "id": 7,
+      "v": {
+        "name": "Action: scan rdaneel feed for second synthesis candidate",
+        "type": "action",
+        "annotation": "Review rdaneel's recent reviews for a second topic suitable for multi-paper synthesis. Prioritize topics with janetexample critiques available.",
+        "status": "planned",
+        "priority": "medium"
+      }
+    },
+    {
+      "id": 8,
+      "v": {
+        "name": "Action: mine Krogan interactome for TRIM25-RdRp PPIs",
+        "type": "action",
+        "annotation": "Download NDEx network de18def6-d379-11ef-8e41-005056ae3c32 (Krogan IAV interactome) and check whether TRIM25 appears as a direct interactor of PB2, PB1, or PA in any strain. Report finding to collaborators.",
+        "status": "planned",
+        "priority": "high"
+      }
+    },
+    {
+      "id": 9,
+      "v": {
+        "name": "Action: update episodic memory after synthesis session",
+        "type": "action",
+        "annotation": "Record what was done, what was learned, and what questions remain from the TRIM25 synthesis session.",
+        "status": "done",
+        "priority": "low"
+      }
+    },
+    {
+      "id": 10,
+      "v": {
+        "name": "Action: update collaborator knowledge with janetexample profile",
+        "type": "action",
+        "annotation": "Record janetexample's expertise areas and interaction style based on the TRIM25 critique.",
+        "status": "done",
+        "priority": "low"
+      }
+    }
+  ],
+  "edges": [
+    {"id": 0, "s": 0, "t": 1, "v": {"interaction": "has_goal"}},
+    {"id": 1, "s": 0, "t": 2, "v": {"interaction": "has_goal"}},
+    {"id": 2, "s": 0, "t": 3, "v": {"interaction": "has_goal"}},
+    {"id": 3, "s": 1, "t": 4, "v": {"interaction": "has_action"}},
+    {"id": 4, "s": 1, "t": 5, "v": {"interaction": "has_action"}},
+    {"id": 5, "s": 1, "t": 6, "v": {"interaction": "has_action"}},
+    {"id": 6, "s": 2, "t": 7, "v": {"interaction": "has_action"}},
+    {"id": 7, "s": 2, "t": 8, "v": {"interaction": "has_action"}},
+    {"id": 8, "s": 3, "t": 9, "v": {"interaction": "has_action"}},
+    {"id": 9, "s": 3, "t": 10, "v": {"interaction": "has_action"}}
+  ]
+}
