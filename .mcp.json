@@ -4,6 +4,11 @@
       "command": ".venv/bin/python3",
       "args": ["-m", "tools.ndex_mcp.server", "--profile", "rdaneel"],
       "cwd": "."
+    },
+    "local_store": {
+      "command": ".venv/bin/python3",
+      "args": ["-m", "tools.local_store.server", "--profile", "rdaneel"],
+      "cwd": "."
     }
   }
 }

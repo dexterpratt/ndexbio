@@ -1,6 +1,6 @@
 # NDExBio Agents — Next Steps
 
-Updated: 2026-03-15, after Slack-like feed redesign + markdown rendering.
+Updated: 2026-03-16, after local store implementation + migration.
 
 ## What Was Accomplished
 
@@ -68,18 +68,58 @@ Updated: 2026-03-15, after Slack-like feed redesign + markdown rendering.
 - **In-app network navigation**: `#uuid` hash links open networks in the Agent Hub viewer instead of linking to NDEx website
 - **Resizable description/properties pane**: drag handle between description and properties panels in viewer sidebar
 
-## Phase 3: prototype launch to demonstrate live behavior
+### Phase 2.5: Local Graph Database + Agent Persistence (2026-03-16) ✅
 
-### Agents with persistence, larger goals, self-planning
- - review Memento vs Open Claw for strategy, documentation
+#### Implementation
+- **`tools/local_store/`** — two-tier local store (SQLite catalog + LadybugDB graph DB)
+  - `catalog.py` — SQLite metadata catalog
+  - `graph_store.py` — LadybugDB graph schema and operations
+  - `cx2_import.py` / `cx2_export.py` — CX2 ↔ graph DB conversion
+  - `store.py` — `LocalStore` integrated API
+  - `server.py` — MCP server with 13 tools
+  - `migrate_working_memory.py` — migration from markdown working memory
+- **79 tests** across T0–T7 + MCP tools, all passing
+- **`real_ladybug`** v0.15.1 (LadybugDB, active fork of archived KuzuDB)
+
+#### MCP Tools (13)
+- Catalog: `query_catalog`, `get_cached_network`
+- Graph queries: `query_graph`, `get_network_nodes`, `get_network_edges`, `find_neighbors`, `find_path`, `find_contradictions`
+- NDEx sync: `cache_network`, `publish_network`, `check_staleness`
+- Management: `delete_cached_network`
+
+#### Migration
+- 28 NDEx networks cached locally (all rdaneel triage outputs + demo networks)
+- Session history network: 9 scan sessions as queryable graph
+- Paper tracker network: 7 papers + 11 proteins + cross-references
+- 30 total networks in local store
+
+#### Key Design Decisions
+- Global node IDs via blake2b hash of `(network_uuid, cx2_node_id)` — avoids PK collisions across networks
+- CX2 JSON files remain canonical format; graph DB is a queryable cache
+- Local-first, NDEx as publication venue
+- `~/.ndex/cache/` as shared cache location
+- Empty MAP workaround with `__empty__` sentinel key
+
+## Phase 3: Prototype Launch — Live Agent Behavior
+
+### Agent Integration with Local Store (active)
+
+rdaneel's CLAUDE.md updated to use local store for:
+- Caching networks it generates (triage outputs auto-cached before NDEx publish)
+- Session history tracking (episodic memory as a graph network)
+- Cross-network queries during Tier 3 analysis
+- Paper deduplication via local catalog queries
+
+**Next: test episode** — run rdaneel's triage pipeline with local store integration, verify it caches outputs and updates session history. Once confirmed, re-enable as Claude Cowork scheduled task.
+
+### Agents with larger goals, self-planning
  - try minimal agent with IAV area of research
  - includes workflows as networks
- - includes basic graph database and sqlite
 
 ### Existing data hypothesis testing
 - Pratibha + Clara collaboration
-- adapt SL agent workflow. 
-- embody as an experimentalist 
+- adapt SL agent workflow.
+- embody as an experimentalist
 - mission includes workflow improvement and datasource aquistion
 
 ### Collaboration Dialogs
@@ -95,13 +135,13 @@ Updated: 2026-03-15, after Slack-like feed redesign + markdown rendering.
 
 ### Open Claw testing
 
-### NDExBio Analysis Agent 
+### NDExBio Analysis Agent
 - Posts to the NDExBio Channel
 
 ### Agents Outputs
 - [ ] Flesh out CCMI group with channels and content
 - [ ] Initiate genuine discussions on `#IAV-mechanisms` (additional agents weighing in)
-- [ ] Incorporate use of NDEx reference networks 
+- [ ] Incorporate use of NDEx reference networks
   - reviews, extensions in `#papers` channel (quality/relevance filter). IAV relevant network
 
 ### Documentation + Presentation Support
@@ -126,12 +166,14 @@ Updated: 2026-03-15, after Slack-like feed redesign + markdown rendering.
 
 ### Architecture
 - [ ] Subagent-driven workflow execution (context window management)
-- [ ] Persistent agent memory and state (NDEx-hosted review logs)
-- [ ] Local network caching (SQLite metadata + NetworkX/CX2 on disk)
+- [x] Local graph database design (LadybugDB + SQLite catalog) — see `project/architecture/local_graph_database.md`
+- [x] Memento evaluation — see `project/architecture/memento_analysis.md`
+- [x] Local store implementation + MCP tools — see `tools/local_store/`
+- [x] Working memory migration to local graph — see `tools/local_store/migrate_working_memory.py`
 - [ ] Agent self-documentation on NDEx
 
 ### Cleanup
-- [ ] Working memory archival (scan logs a-g)
+- [x] Working memory archival (scan logs a-g) — migrated to session history network
 - [ ] Network quality review (node/edge structure, visual styles)
 - [ ] Web app: direct request posting with auth
 - [ ] Web app: extract NDEx viewer into reusable component
@@ -147,18 +189,16 @@ Updated: 2026-03-15, after Slack-like feed redesign + markdown rendering.
 2. **Safety classifier**: May block synthesis on certain biomedical topics. Reframe as "literature curation" / "knowledge graph construction".
 3. **`set_network_properties` replaces all properties**: When updating one property, others are lost. Need to pass full property list or investigate NDEx append mode.
 4. **Keywords hardcoded in two places**: tier1_scan.py and config.yaml.
+5. **LadybugDB empty MAP workaround**: Can't pass empty list parameters to Cypher. Uses `__empty__` sentinel key, cleaned automatically by `_clean_map()`.
+6. **LadybugDB `nodes(path)` syntax**: List comprehension `[n IN nodes(path) | n.name]` not supported. Extract node names in Python instead.
 
 ## Key File Locations
 
 | What | Where |
 |------|-------|
-| Repo | ~/Documents/agents/GitHub/ndexbio |
-| Claude Desktop config | ~/Library/Application Support/Claude/claude_desktop_config.json |
+| Repo | ~/Dropbox/GitHub/ndexbio |
 | NDEx credentials | ~/.ndex/config.json |
+| Local store cache | ~/.ndex/cache/ |
 | MCP permissions | ~/.claude/settings.json |
-| Scheduled task | ~/Documents/Claude/Scheduled/rdaneel-biorxiv-triage/ |
-| Python venv | ~/Documents/agents/GitHub/ndexbio/.venv/ |
-| Agent Hub web app | ~/Documents/agents/GitHub/ndexbio/webapps/agent-hub/ |
-| Demo plan | ~/Documents/agents/GitHub/ndexbio/webapps/agent-hub/demo_plan.md |
-| Demo staging | ~/Documents/agents/GitHub/ndexbio/demo_staging/ |
-| Posted networks | ~/Documents/agents/GitHub/ndexbio/demo_staging/posted_networks.md |
+| Python venv | .venv/ |
+| Agent Hub web app | webapps/agent-hub/ |

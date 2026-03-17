@@ -214,33 +214,122 @@ class BiorxivClient:
     def fetch_paper_text(self, paper: BiorxivPaper) -> str:
         """Attempt to retrieve the full text of a paper.
 
-        Tries JATS XML first, then falls back to scraping the HTML full text.
+        Tries sources in order:
+        1. bioRxiv JATS XML (direct)
+        2. bioRxiv HTML full text
+        3. Europe PMC full text XML (for published papers with PMCID)
+        4. Abstract only (last resort)
+
         Returns raw text content (stripped of XML/HTML tags for readability).
         """
         # Try JATS XML first
         if paper.jatsxml:
-            try:
-                self._rate_limit()
-                resp = self._session.get(paper.jatsxml, timeout=30)
-                resp.raise_for_status()
-                # Strip XML tags for a readable text version
-                text = re.sub(r"<[^>]+>", " ", resp.text)
-                text = re.sub(r"\s+", " ", text).strip()
+            text = self._try_fetch_url(paper.jatsxml)
+            if text:
                 return text
-            except Exception:
-                pass
 
         # Fall back to HTML full text
         url = f"{paper.biorxiv_url}.full"
+        text = self._try_fetch_html(url)
+        if text:
+            return text
+
+        # Fall back to Europe PMC
+        text = self._try_europepmc(paper)
+        if text:
+            return text
+
+        # Last resort: return abstract with a note
+        if paper.abstract:
+            return (
+                f"[Full text unavailable — abstract only]\n\n{paper.abstract}"
+            )
+        return "Error: full text unavailable from all sources"
+
+    def _try_fetch_url(self, url: str) -> Optional[str]:
+        """Try fetching and stripping XML/text from a URL."""
         try:
             self._rate_limit()
             resp = self._session.get(url, timeout=30)
             resp.raise_for_status()
-            # Extract article body text (rough extraction)
+            if len(resp.text) < 500:
+                return None  # Likely a Cloudflare block page
+            text = re.sub(r"<[^>]+>", " ", resp.text)
+            text = re.sub(r"\s+", " ", text).strip()
+            if len(text) < 200:
+                return None
+            return text
+        except Exception:
+            return None
+
+    def _try_fetch_html(self, url: str) -> Optional[str]:
+        """Try fetching and extracting text from an HTML page."""
+        try:
+            self._rate_limit()
+            resp = self._session.get(url, timeout=30)
+            resp.raise_for_status()
+            if len(resp.text) < 1000:
+                return None
             text = re.sub(r"<script[^>]*>.*?</script>", "", resp.text, flags=re.DOTALL)
             text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.DOTALL)
             text = re.sub(r"<[^>]+>", " ", text)
             text = re.sub(r"\s+", " ", text).strip()
+            if len(text) < 500:
+                return None
             return text
-        except Exception as e:
-            return f"Error fetching full text: {e}"
+        except Exception:
+            return None
+
+    def _try_europepmc(self, paper: BiorxivPaper) -> Optional[str]:
+        """Try fetching full text from Europe PMC.
+
+        Works for papers that have been formally published and deposited
+        in PubMed Central. Looks up the paper by its published DOI or
+        bioRxiv DOI to find a PMCID, then fetches the JATS XML.
+        """
+        try:
+            import requests as req
+
+            epmc_base = "https://www.ebi.ac.uk/europepmc/webservices/rest"
+
+            # Try published DOI first (more likely to have PMC full text)
+            dois_to_try = []
+            if paper.published_doi:
+                dois_to_try.append(paper.published_doi)
+            dois_to_try.append(paper.doi)
+
+            pmcid = None
+            for doi in dois_to_try:
+                self._rate_limit()
+                resp = req.get(
+                    f"{epmc_base}/search",
+                    params={"query": f'DOI:"{doi}"', "format": "json", "pageSize": 1},
+                    timeout=15,
+                )
+                if resp.status_code != 200:
+                    continue
+                data = resp.json()
+                if data.get("hitCount", 0) > 0:
+                    result = data["resultList"]["result"][0]
+                    pmcid = result.get("pmcid")
+                    if pmcid:
+                        break
+
+            if not pmcid:
+                return None
+
+            # Fetch full text XML via PMCID
+            self._rate_limit()
+            xml_resp = req.get(f"{epmc_base}/{pmcid}/fullTextXML", timeout=30)
+            if xml_resp.status_code != 200 or len(xml_resp.text) < 500:
+                return None
+
+            # Strip XML tags
+            text = re.sub(r"<[^>]+>", " ", xml_resp.text)
+            text = re.sub(r"\s+", " ", text).strip()
+
+            if len(text) > 500:
+                return f"[Source: Europe PMC {pmcid}]\n\n{text}"
+            return None
+        except Exception:
+            return None
