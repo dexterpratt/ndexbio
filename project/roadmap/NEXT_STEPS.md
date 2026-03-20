@@ -110,17 +110,52 @@ rdaneel's CLAUDE.md updated to use local store for:
 - Cross-network queries during Tier 3 analysis
 - Paper deduplication via local catalog queries
 
-**Next: test episode** — run rdaneel's triage pipeline with local store integration, verify it caches outputs and updates session history. Once confirmed, re-enable as Claude Cowork scheduled task.
+### Phase 3.5: Multi-Agent Research System (2026-03-19) ✅
 
-### Agents with larger goals, self-planning
- - try minimal agent with IAV area of research
- - includes workflows as networks
+#### PubMed/PMC MCP Server
+- **`tools/pubmed/`** — 4 MCP tools for published literature access:
+  - `search_pubmed` — NCBI eutils esearch + efetch (returns metadata + abstracts)
+  - `get_pubmed_abstract` — single paper abstract by PMID
+  - `get_pmc_fulltext` — full text via Europe PMC (accepts PMCID/PMID/DOI)
+  - `search_pmc_fulltext` — Europe PMC search filtered for open-access full text
+- Retry logic for NCBI 429 rate limiting, optional `NCBI_API_KEY` support
+- 16 live API tests passing
+
+#### Agent Refocus: rdaneel → Literature Discovery
+- Mission transformed from "bioRxiv daily scanner" to "literature discovery agent"
+- Research focus narrowed to RIG-I/TRIM25 mechanisms in influenza
+- Dual-source strategy: bioRxiv (preprints) + PubMed/PMC (published literature, citation chains)
+- Author tracking: builds `rdaneel-researcher-network` (map of the field)
+- Inter-agent awareness: checks drh and janetexample posts at session start
+
+#### New Agent: drh (Knowledge Graph Synthesis)
+- Mission: construct comprehensive RIG-I/TRIM25 knowledge graph
+- Integrates rdaneel's analyses, janetexample's critiques, and background knowledge
+- Also maintains researcher knowledge graph from rdaneel's author data
+- Shares synthesis updates at end of session
+
+#### New Agent: janetexample (Critique/Catalyst)
+- Mission: constructive critique, hypothesis development, data analysis
+- Report authority: decides when team outputs are ready for HPMI evaluation
+- Can analyze public NDEx resources (interactomes) to test hypotheses
+- Creates report networks only when quality bar is met
+
+#### Per-Agent Local Store Isolation
+- Each agent gets its own LadybugDB instance: `~/.ndex/cache/{agent_name}/`
+- Enables fully concurrent agent operation (no write contention)
+- Cross-agent discovery through NDEx (designed communication channel)
+- Per-agent `.mcp.json` configs in `agents/{name}/.mcp.json`
+
+#### Standardized Self-Knowledge
+- All agents use: session-history, plans, collaborator-map, papers-read networks
+- Session planning: chunking, social feed check, pause principle, sub-agent delegation
+- Templates reference `demo_staging/self_knowledge_specs.md`
 
 ### Existing data hypothesis testing
 - Pratibha + Clara collaboration
-- adapt SL agent workflow.
+- adapt SL agent workflow
 - embody as an experimentalist
-- mission includes workflow improvement and datasource aquistion
+- mission includes workflow improvement and datasource acquisition
 
 ### Collaboration Dialogs
 - requests for help
@@ -198,7 +233,7 @@ rdaneel's CLAUDE.md updated to use local store for:
 |------|-------|
 | Repo | ~/Dropbox/GitHub/ndexbio |
 | NDEx credentials | ~/.ndex/config.json |
-| Local store cache | ~/.ndex/cache/ |
+| Local store cache | ~/.ndex/cache/{agent_name}/ |
 | MCP permissions | ~/.claude/settings.json |
 | Python venv | .venv/ |
 | Agent Hub web app | webapps/agent-hub/ |

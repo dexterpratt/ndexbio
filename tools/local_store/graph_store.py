@@ -55,17 +55,23 @@ SCHEMA_STATEMENTS = [
 ]
 
 
-def _map_expr(props: dict[str, str], key_param: str, val_param: str, params: dict) -> str:
-    """Build a Cypher MAP expression, handling the empty-list parameter bug.
+def _escape_cypher_string(s: str) -> str:
+    """Escape a string for use in a Cypher single-quoted literal."""
+    return s.replace("\\", "\\\\").replace("'", "\\'")
 
-    LadybugDB cannot infer types for empty list parameters, so we use
-    a literal empty map expression when there are no properties.
+
+def _map_expr(props: dict[str, str], key_param: str, val_param: str, params: dict) -> str:
+    """Build a Cypher MAP expression using literal lists.
+
+    LadybugDB's map() function expects LIST arguments, but parameterised
+    lists are passed as STRING[] which causes a type mismatch.  We build
+    literal list expressions instead, which LadybugDB handles correctly.
     """
     if not props:
         return "map(['__empty__'], ['__empty__'])"
-    params[key_param] = list(props.keys())
-    params[val_param] = list(props.values())
-    return f"map(${key_param}, ${val_param})"
+    keys_lit = "[" + ", ".join(f"'{_escape_cypher_string(k)}'" for k in props.keys()) + "]"
+    vals_lit = "[" + ", ".join(f"'{_escape_cypher_string(str(v))}'" for v in props.values()) + "]"
+    return f"map({keys_lit}, {vals_lit})"
 
 
 # Sentinel key used to represent empty MAPs (LadybugDB workaround)

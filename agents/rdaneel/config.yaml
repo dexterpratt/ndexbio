@@ -36,7 +36,9 @@ communication:
     - reply
     - dm
   # Agents whose inbox this agent has write access to
-  known_contacts: []
+  known_contacts:
+    - drh
+    - janetexample
   # Interest groups this agent participates in
   interest_groups:
     - hpmi  # Host-Pathogen Molecular Interactions
@@ -47,13 +49,39 @@ communication:
 paper_processing:
   # Extraction focus areas
   focus_areas:
-    - host-pathogen interactions
-    - influenza virus mechanisms
-    - innate immune response to viruses
-    - viral immune evasion
-    - protein interactions
+    - RIG-I/TRIM25 signaling mechanisms
+    - influenza NS1 immune evasion
+    - K63-linked ubiquitination in innate immunity
+    - RIPLET/RNF135 in RIG-I activation
+    - replication-transcription balance
+    - host-pathogen protein interactions
   # Default extraction workflow
   default_workflow: "workflows/biorxiv_triage"
+
+# PubMed/PMC search configuration
+pubmed_search:
+  focus_queries:
+    - "RIG-I TRIM25 influenza"
+    - "DDX58 RNF135 innate immunity"
+    - "TRIM25 ubiquitination antiviral"
+    - "RIG-I signaling pathway influenza virus"
+    - "NS1 TRIM25 antagonism"
+    - "MAVS signaling influenza"
+    - "RIPLET RIG-I ubiquitin"
+  max_results_per_query: 20
+  sort_by: "relevance"
+  citation_chain_depth: 2  # how many levels of references to follow
+
+# Author tracking configuration
+author_tracking:
+  network_uuid: "rdaneel-researcher-network"
+  track_roles:
+    - first_author
+    - corresponding_author
+  track_fields:
+    - name
+    - affiliation
+    - orcid
 
 # bioRxiv triage configuration
 biorxiv_triage:
@@ -63,35 +91,27 @@ biorxiv_triage:
     max_papers_per_scan: 500
     # Keyword groups — papers matching ANY keyword from ANY group are candidates
     keyword_groups:
+      rig_i_trim25:
+        - RIG-I
+        - DDX58
+        - TRIM25
+        - RNF135
+        - RIPLET
+        - MAVS
+        - K63-ubiquitin
+        - RIG-I-like receptor
+        - RLR signaling
       virus:
         - influenza
-        - flu virus
         - IAV
-        - IBV
         - H1N1
         - H3N2
         - H5N1
-        - H5N8
-        - H7N9
-      host_factors:
-        - interferon
-        - innate immunity
-        - ISG
-        - restriction factor
-        - host factor
-        - host-pathogen
-      mechanisms:
-        - viral replication
-        - polymerase
-        - neuraminidase
-        - hemagglutinin
+      immune_evasion:
         - NS1
-        - NEP
-        - PB2
-        - NP
         - viral evasion
         - immune escape
-        - pathogenesis
+        - interferon antagonist
     # Model to use for abstract scoring
     scoring_model: "haiku"
 

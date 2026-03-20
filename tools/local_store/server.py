@@ -20,20 +20,42 @@ from tools.local_store.store import LocalStore
 
 mcp = FastMCP("local_store", log_level="INFO")
 
-_store: LocalStore | None = None
-_ndex: NDExClientWrapper | None = None
+# Multi-agent support: each agent gets its own LocalStore (isolated LadybugDB).
+# The default agent/cache-dir is set at startup; per-call `agent` parameter overrides.
+_default_cache_dir: Path | None = None
+_stores: dict[str | None, LocalStore] = {}
+_ndex_clients: dict[str | None, NDExClientWrapper] = {}
+_default_profile: str | None = None
 
 
-def _get_store() -> LocalStore:
-    global _store
-    if _store is None:
-        _store = LocalStore()
-    return _store
+def _get_store(agent: str | None = None) -> LocalStore:
+    """Get a LocalStore for the given agent. Each agent has isolated storage."""
+    if agent is not None:
+        cache_dir = Path.home() / ".ndex" / "cache" / agent
+    elif _default_cache_dir is not None:
+        cache_dir = _default_cache_dir
+    else:
+        cache_dir = Path.home() / ".ndex" / "cache"
+
+    key = str(cache_dir)
+    if key not in _stores:
+        _stores[key] = LocalStore(cache_dir=cache_dir)
+    return _stores[key]
 
 
-def _get_ndex() -> NDExClientWrapper | None:
-    global _ndex
-    return _ndex
+def _get_ndex(profile: str | None = None) -> NDExClientWrapper | None:
+    """Get an NDEx client for the given profile."""
+    key = profile if profile is not None else _default_profile
+    if key not in _ndex_clients:
+        try:
+            config = load_ndex_config(profile=key)
+            if has_credentials(config):
+                _ndex_clients[key] = NDExClientWrapper(config)
+            else:
+                return None
+        except (ValueError, FileNotFoundError):
+            return None
+    return _ndex_clients.get(key)
 
 
 # ── Catalog Operations ───────────────────────────────────────────────
@@ -44,6 +66,7 @@ def query_catalog(
     category: str | None = None,
     agent: str | None = None,
     data_type: str | None = None,
+    store_agent: str | None = None,
 ) -> dict:
     """List cached networks, optionally filtered by category, agent, or data_type.
 
@@ -52,10 +75,11 @@ def query_catalog(
 
     Args:
         category: Filter by network category.
-        agent: Filter by owning agent (rdaneel, drh, etc.).
+        agent: Filter by owning agent in catalog metadata (rdaneel, drh, etc.).
         data_type: Filter by data type (graph, tabular, agent-state).
+        store_agent: Which agent's local store to query (e.g. "drh"). Uses default if omitted.
     """
-    store = _get_store()
+    store = _get_store(store_agent)
     filters = {}
     if category:
         filters["category"] = category
@@ -72,13 +96,14 @@ def query_catalog(
 
 
 @mcp.tool()
-def get_cached_network(network_uuid: str) -> dict:
+def get_cached_network(network_uuid: str, store_agent: str | None = None) -> dict:
     """Get catalog metadata for a cached network.
 
     Args:
         network_uuid: UUID of the network.
+        store_agent: Which agent's local store to query. Uses default if omitted.
     """
-    store = _get_store()
+    store = _get_store(store_agent)
     entry = store.get_catalog_entry(network_uuid)
     if entry is None:
         return {"status": "error", "message": f"Network {network_uuid} not in cache"}
@@ -89,7 +114,7 @@ def get_cached_network(network_uuid: str) -> dict:
 
 
 @mcp.tool()
-def query_graph(cypher: str) -> dict:
+def query_graph(cypher: str, store_agent: str | None = None) -> dict:
     """Execute a Cypher query against the local graph database.
 
     The graph contains BioNode and Network node tables with Interacts
@@ -103,8 +128,9 @@ def query_graph(cypher: str) -> dict:
 
     Args:
         cypher: Cypher query string.
+        store_agent: Which agent's local store to query (e.g. "drh"). Uses default if omitted.
     """
-    store = _get_store()
+    store = _get_store(store_agent)
     try:
         rows = store.query_graph(cypher)
         return {
@@ -117,13 +143,14 @@ def query_graph(cypher: str) -> dict:
 
 
 @mcp.tool()
-def get_network_nodes(network_uuid: str) -> dict:
+def get_network_nodes(network_uuid: str, store_agent: str | None = None) -> dict:
     """Get all nodes for a cached network.
 
     Args:
         network_uuid: UUID of the network.
+        store_agent: Which agent's local store to query. Uses default if omitted.
     """
-    store = _get_store()
+    store = _get_store(store_agent)
     nodes = store.graph.get_network_nodes(network_uuid)
     return {
         "status": "success",
@@ -133,13 +160,14 @@ def get_network_nodes(network_uuid: str) -> dict:
 
 
 @mcp.tool()
-def get_network_edges(network_uuid: str) -> dict:
+def get_network_edges(network_uuid: str, store_agent: str | None = None) -> dict:
     """Get all edges for a cached network.
 
     Args:
         network_uuid: UUID of the network.
+        store_agent: Which agent's local store to query. Uses default if omitted.
     """
-    store = _get_store()
+    store = _get_store(store_agent)
     edges = store.graph.get_network_edges(network_uuid)
     return {
         "status": "success",
@@ -149,14 +177,15 @@ def get_network_edges(network_uuid: str) -> dict:
 
 
 @mcp.tool()
-def find_neighbors(node_name: str, network_uuid: str | None = None) -> dict:
+def find_neighbors(node_name: str, network_uuid: str | None = None, store_agent: str | None = None) -> dict:
     """Find all neighbors of a node by name.
 
     Args:
         node_name: Name of the node to find neighbors for.
         network_uuid: Optional — restrict to a specific network.
+        store_agent: Which agent's local store to query. Uses default if omitted.
     """
-    store = _get_store()
+    store = _get_store(store_agent)
     if network_uuid:
         query = (
             "MATCH (n:BioNode {name: $name, network_uuid: $uuid})"
@@ -182,6 +211,7 @@ def find_path(
     source_name: str,
     target_name: str,
     max_hops: int = 4,
+    store_agent: str | None = None,
 ) -> dict:
     """Find paths between two nodes by name across all cached networks.
 
@@ -189,8 +219,9 @@ def find_path(
         source_name: Name of the source node.
         target_name: Name of the target node.
         max_hops: Maximum path length (default 4).
+        store_agent: Which agent's local store to query. Uses default if omitted.
     """
-    store = _get_store()
+    store = _get_store(store_agent)
     query = (
         f"MATCH path = (a:BioNode {{name: $src}})"
         f"-[:Interacts*1..{max_hops}]-"
@@ -210,14 +241,15 @@ def find_path(
 
 
 @mcp.tool()
-def find_contradictions(network_uuid_1: str, network_uuid_2: str) -> dict:
+def find_contradictions(network_uuid_1: str, network_uuid_2: str, store_agent: str | None = None) -> dict:
     """Find contradictions: same node pair with opposite interaction types across two networks.
 
     Args:
         network_uuid_1: UUID of the first network.
         network_uuid_2: UUID of the second network.
+        store_agent: Which agent's local store to query. Uses default if omitted.
     """
-    store = _get_store()
+    store = _get_store(store_agent)
     query = (
         "MATCH (a:BioNode)-[r1:Interacts {network_uuid: $uuid1}]->(b:BioNode), "
         "      (c:BioNode)-[r2:Interacts {network_uuid: $uuid2}]->(d:BioNode) "
@@ -242,7 +274,13 @@ def find_contradictions(network_uuid_1: str, network_uuid_2: str) -> dict:
 
 
 @mcp.tool()
-def cache_network(network_uuid: str, agent: str | None = None, category: str | None = None) -> dict:
+def cache_network(
+    network_uuid: str,
+    agent: str | None = None,
+    category: str | None = None,
+    store_agent: str | None = None,
+    profile: str | None = None,
+) -> dict:
     """Download a network from NDEx and cache it in the local store.
 
     Downloads the CX2 data, imports it into the graph database, and
@@ -251,14 +289,16 @@ def cache_network(network_uuid: str, agent: str | None = None, category: str | N
 
     Args:
         network_uuid: NDEx UUID of the network to cache.
-        agent: Owning agent name (rdaneel, drh, etc.).
+        agent: Owning agent name in catalog metadata (rdaneel, drh, etc.).
         category: Network category override.
+        store_agent: Which agent's local store to cache into (e.g. "drh"). Uses default if omitted.
+        profile: NDEx profile for downloading. Uses default if omitted.
     """
-    ndex = _get_ndex()
+    ndex = _get_ndex(profile)
     if ndex is None:
         return {"status": "error", "message": "NDEx client not configured"}
 
-    store = _get_store()
+    store = _get_store(store_agent)
 
     # Download from NDEx
     dl_result = ndex.download_network(network_uuid)
@@ -290,7 +330,11 @@ def cache_network(network_uuid: str, agent: str | None = None, category: str | N
 
 
 @mcp.tool()
-def publish_network(network_uuid: str) -> dict:
+def publish_network(
+    network_uuid: str,
+    store_agent: str | None = None,
+    profile: str | None = None,
+) -> dict:
     """Export a cached network and upload/update it on NDEx.
 
     If the network already exists on NDEx (UUID is a valid NDEx UUID),
@@ -298,12 +342,14 @@ def publish_network(network_uuid: str) -> dict:
 
     Args:
         network_uuid: UUID of the cached network to publish.
+        store_agent: Which agent's local store to publish from. Uses default if omitted.
+        profile: NDEx profile for publishing (e.g. "drh"). Uses default if omitted.
     """
-    ndex = _get_ndex()
+    ndex = _get_ndex(profile)
     if ndex is None:
         return {"status": "error", "message": "NDEx client not configured"}
 
-    store = _get_store()
+    store = _get_store(store_agent)
     entry = store.get_catalog_entry(network_uuid)
     if entry is None:
         return {"status": "error", "message": f"Network {network_uuid} not in cache"}
@@ -329,17 +375,23 @@ def publish_network(network_uuid: str) -> dict:
 
 
 @mcp.tool()
-def check_staleness(network_uuid: str) -> dict:
+def check_staleness(
+    network_uuid: str,
+    store_agent: str | None = None,
+    profile: str | None = None,
+) -> dict:
     """Check if a cached network is stale compared to NDEx.
 
     Args:
         network_uuid: UUID of the cached network.
+        store_agent: Which agent's local store to check. Uses default if omitted.
+        profile: NDEx profile for checking. Uses default if omitted.
     """
-    ndex = _get_ndex()
+    ndex = _get_ndex(profile)
     if ndex is None:
         return {"status": "error", "message": "NDEx client not configured"}
 
-    store = _get_store()
+    store = _get_store(store_agent)
     entry = store.get_catalog_entry(network_uuid)
     if entry is None:
         return {"status": "error", "message": f"Network {network_uuid} not in cache"}
@@ -365,13 +417,14 @@ def check_staleness(network_uuid: str) -> dict:
 
 
 @mcp.tool()
-def delete_cached_network(network_uuid: str) -> dict:
+def delete_cached_network(network_uuid: str, store_agent: str | None = None) -> dict:
     """Remove a network from the local cache (does not affect NDEx).
 
     Args:
         network_uuid: UUID of the network to remove.
+        store_agent: Which agent's local store to delete from. Uses default if omitted.
     """
-    store = _get_store()
+    store = _get_store(store_agent)
     entry = store.get_catalog_entry(network_uuid)
     if entry is None:
         return {"status": "error", "message": f"Network {network_uuid} not in cache"}
@@ -383,37 +436,39 @@ def delete_cached_network(network_uuid: str) -> dict:
 
 
 def main():
-    global _store, _ndex
+    global _default_cache_dir, _default_profile
     parser = argparse.ArgumentParser(description="Local Store MCP Server")
     parser.add_argument(
         "--profile",
         default=None,
-        help="NDEx profile from ~/.ndex/config.json for network sync.",
+        help="Default NDEx profile for network sync. "
+        "Individual tool calls can override with their own profile parameter.",
     )
     parser.add_argument(
         "--cache-dir",
         default=None,
-        help="Cache directory (default: ~/.ndex/cache/).",
+        help="Default cache directory. Individual tool calls can override "
+        "with store_agent parameter (default: ~/.ndex/cache/).",
     )
     args = parser.parse_args()
 
-    # Initialize local store
-    _store = LocalStore(cache_dir=args.cache_dir)
+    # Set defaults for multi-agent support
+    _default_profile = args.profile
+    if args.cache_dir:
+        _default_cache_dir = Path(args.cache_dir).expanduser()
 
-    # Initialize NDEx client (optional — cache-only mode if no credentials)
-    try:
-        config = load_ndex_config(profile=args.profile)
-        if has_credentials(config):
-            _ndex = NDExClientWrapper(config)
-            user = config.username
-        else:
-            user = "anonymous (cache-only)"
-    except (ValueError, FileNotFoundError):
-        user = "no config (cache-only)"
+    # Pre-initialize the default store and NDEx client
+    store = _get_store()
+    ndex = _get_ndex()
+    user = "anonymous (cache-only)"
+    if ndex is not None:
+        status = ndex.get_connection_status()
+        if status.get("status") == "success":
+            user = status["data"].get("username", "anonymous")
 
     print(
-        f"Local Store MCP server started — user={user}, "
-        f"cache={_store.cache_dir}",
+        f"Local Store MCP server started — default_profile={args.profile or 'default'}, "
+        f"user={user}, cache={store.cache_dir} (multi-agent enabled)",
         file=sys.stderr,
     )
     mcp.run(transport="stdio")
