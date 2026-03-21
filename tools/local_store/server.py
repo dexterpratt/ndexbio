@@ -329,19 +329,38 @@ def cache_network(
     }
 
 
+def _make_network_public(ndex: NDExClientWrapper, network_id: str) -> dict | None:
+    """Set a network to PUBLIC, searchable (index_level=ALL), and showcased.
+
+    Default agent behaviour: all published networks should be visible and
+    discoverable so that the NDExBio system can be monitored and analysed.
+    Returns the result dict on error, or None on success.
+    """
+    props = {"visibility": "PUBLIC", "index_level": "ALL", "showcase": True}
+    result = ndex.set_network_system_properties(network_id, props)
+    if result["status"] != "success":
+        return result
+    return None
+
+
 @mcp.tool()
 def publish_network(
     network_uuid: str,
     store_agent: str | None = None,
     profile: str | None = None,
 ) -> dict:
-    """Export a cached network and upload/update it on NDEx.
+    """Update an existing network on NDEx with the local cached version.
 
-    If the network already exists on NDEx (UUID is a valid NDEx UUID),
-    it is updated. Otherwise a new network is created.
+    The network must already exist on NDEx and the authenticated user
+    must have write permission. After updating, the network is made
+    PUBLIC, searchable, and showcased by default.
+
+    Use save_new_network instead when:
+    - The source network is read-only or owned by someone else.
+    - You want to create a modified copy rather than overwriting.
 
     Args:
-        network_uuid: UUID of the cached network to publish.
+        network_uuid: UUID of the cached network to update on NDEx.
         store_agent: Which agent's local store to publish from. Uses default if omitted.
         profile: NDEx profile for publishing (e.g. "drh"). Uses default if omitted.
     """
@@ -357,19 +376,91 @@ def publish_network(
     # Export from graph
     cx2 = store.export_network(network_uuid)
 
-    # Try update first (assumes UUID is from NDEx); fall back to create
-    if entry.get("ndex_modified"):
-        result = ndex.update_network(network_uuid, cx2)
-    else:
-        result = ndex.create_network(cx2)
+    # Update existing network on NDEx
+    result = ndex.update_network(network_uuid, cx2)
 
     if result["status"] == "success":
-        # Get new modification timestamp
+        # Make public, searchable, and showcased
+        pub_err = _make_network_public(ndex, network_uuid)
+        if pub_err:
+            result["visibility_warning"] = pub_err["message"]
+
+        # Record modification timestamp
         summary = ndex.get_network_summary(network_uuid)
         ndex_modified = ""
         if summary["status"] == "success":
             ndex_modified = str(summary["data"].get("modificationTime", ""))
         store.mark_published(network_uuid, ndex_modified=ndex_modified)
+
+    return result
+
+
+@mcp.tool()
+def save_new_network(
+    network_uuid: str,
+    name: str | None = None,
+    store_agent: str | None = None,
+    profile: str | None = None,
+) -> dict:
+    """Export a cached network and save it as a NEW network on NDEx.
+
+    Creates a fresh network under the authenticated user's account,
+    regardless of where the original came from. The new network is
+    made PUBLIC, searchable, and showcased by default.
+
+    Use this when:
+    - The source network is read-only or owned by someone else.
+    - You want to publish a modified copy without overwriting the original.
+
+    Use publish_network instead when you want to update an existing
+    network in place.
+
+    Args:
+        network_uuid: UUID of the cached network to export.
+        name: Optional new name for the network. If omitted, keeps the cached name.
+        store_agent: Which agent's local store to export from. Uses default if omitted.
+        profile: NDEx profile for publishing (e.g. "drh"). Uses default if omitted.
+    """
+    ndex = _get_ndex(profile)
+    if ndex is None:
+        return {"status": "error", "message": "NDEx client not configured"}
+
+    store = _get_store(store_agent)
+    entry = store.get_catalog_entry(network_uuid)
+    if entry is None:
+        return {"status": "error", "message": f"Network {network_uuid} not in cache"}
+
+    # Export from graph
+    cx2 = store.export_network(network_uuid)
+
+    # Override name if requested
+    if name:
+        attrs = cx2.get_network_attributes()
+        if isinstance(attrs, dict):
+            attrs["name"] = name
+            cx2.set_network_attributes(attrs)
+        else:
+            cx2.set_name(name)
+
+    # Create as new network on NDEx
+    result = ndex.create_network(cx2)
+
+    if result["status"] == "success":
+        new_network_id = result["data"]
+        # The ndex2 client returns the URL; extract UUID from it
+        if isinstance(new_network_id, str) and "/" in new_network_id:
+            new_network_id = new_network_id.rstrip("/").split("/")[-1]
+
+        # Make public, searchable, and showcased
+        pub_err = _make_network_public(ndex, new_network_id)
+        if pub_err:
+            result["visibility_warning"] = pub_err["message"]
+
+        result["data"] = {
+            "network_id": new_network_id,
+            "url": f"https://www.ndexbio.org/v3/networks/{new_network_id}",
+            "source_uuid": network_uuid,
+        }
 
     return result
 

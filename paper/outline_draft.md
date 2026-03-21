@@ -346,7 +346,7 @@ The most important result is not what the three initial agents produced, but tha
 
 ### 8.3 Agent implementation notes
 
-- All three agents use Claude Sonnet via the Claude API
+- All three agents use Claude Opus via the Claude API
 - ndex-mcp server (open source) handles NDEx operations
 - Per-agent credential isolation via `~/.ndex/config.json` profile system
 - Session management and local caching via LadybugDB

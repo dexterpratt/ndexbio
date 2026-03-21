@@ -29,18 +29,27 @@ def spec_to_cx2(spec: dict) -> CX2Network:
         net.add_network_attribute(key, value)
 
     # Nodes — auto-assign IDs when not provided.
+    # Accepts attributes under "v" (CX2 native) or "attributes" (friendly).
     next_id = 0
     for node in spec.get("nodes", []):
         node_id = node.get("id")
         if node_id is None:
             node_id = next_id
         next_id = max(next_id, node_id) + 1
-        net.add_node(node_id=node_id, attributes=node.get("v", {}))
+        attrs = node.get("v") or node.get("attributes") or {}
+        net.add_node(node_id=node_id, attributes=attrs)
 
     # Edges — IDs are auto-assigned by CX2Network.
+    # Accepts "s"/"t" (CX2 native) or "source"/"target" (friendly).
     for edge in spec.get("edges", []):
-        net.add_edge(source=edge["s"], target=edge["t"],
-                     attributes=edge.get("v", {}))
+        source = edge.get("s") if "s" in edge else edge.get("source")
+        target = edge.get("t") if "t" in edge else edge.get("target")
+        if source is None or target is None:
+            raise ValueError(
+                f"Edge missing source/target. Use 's'/'t' or 'source'/'target': {edge}"
+            )
+        attrs = edge.get("v") or edge.get("attributes") or {}
+        net.add_edge(source=source, target=target, attributes=attrs)
 
     return net
 

@@ -177,6 +177,54 @@ class BiorxivClient:
 
         return all_papers[:max_papers]
 
+    def search_recent_with_filter(
+        self,
+        interval_days: int = 7,
+        server: str = "biorxiv",
+        filter_fn=None,
+        max_results: int = 50,
+        max_pages: int = 10,
+    ) -> tuple[list[BiorxivPaper], int]:
+        """Fetch pages of recent papers, filtering as we go.
+
+        Stops early once max_results matches are found or max_pages
+        have been fetched, whichever comes first. This avoids downloading
+        the entire date range when only a few matches are needed.
+
+        Args:
+            interval_days: How many days back to search.
+            server: 'biorxiv' or 'medrxiv'.
+            filter_fn: Callable(BiorxivPaper) -> bool. If None, all papers match.
+            max_results: Stop after this many matches.
+            max_pages: Maximum API pages to fetch (each page = 100 papers).
+
+        Returns:
+            Tuple of (matched_papers, total_scanned).
+        """
+        matched = []
+        total_scanned = 0
+        cursor = 0
+
+        for _ in range(max_pages):
+            batch = self.get_recent_papers(
+                interval_days=interval_days,
+                server=server,
+                cursor=cursor,
+            )
+            if not batch:
+                break
+            total_scanned += len(batch)
+
+            for paper in batch:
+                if filter_fn is None or filter_fn(paper):
+                    matched.append(paper)
+                    if len(matched) >= max_results:
+                        return matched, total_scanned
+
+            cursor += len(batch)
+
+        return matched, total_scanned
+
     def search_by_keywords(
         self,
         papers: list[BiorxivPaper],

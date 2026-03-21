@@ -31,6 +31,9 @@ def search_recent_papers(
 ) -> dict:
     """Search recent bioRxiv preprints by keywords in title and abstract.
 
+    Fetches pages incrementally and stops early once enough matches are
+    found, avoiding unnecessary API calls.
+
     Args:
         keywords: Comma-separated keywords (e.g. "influenza, host-pathogen, innate immunity").
         interval_days: How many days back to search (default 7).
@@ -43,16 +46,23 @@ def search_recent_papers(
         if not kw_list:
             return {"status": "error", "message": "No keywords provided"}
 
-        all_papers = client.get_all_recent_papers(
-            interval_days=interval_days, max_papers=500
+        def keyword_filter(paper):
+            searchable = f"{paper.title} {paper.abstract}".lower()
+            if match_mode == "all":
+                return all(kw.lower() in searchable for kw in kw_list)
+            else:
+                return any(kw.lower() in searchable for kw in kw_list)
+
+        matched, total_scanned = client.search_recent_with_filter(
+            interval_days=interval_days,
+            filter_fn=keyword_filter,
+            max_results=max_results,
         )
-        matched = client.search_by_keywords(all_papers, kw_list, match_mode=match_mode)
-        matched = matched[:max_results]
 
         return {
             "status": "success",
             "data": {
-                "total_scanned": len(all_papers),
+                "total_scanned": total_scanned,
                 "matched": len(matched),
                 "papers": [p.to_dict() for p in matched],
             },
@@ -69,6 +79,9 @@ def get_recent_papers_by_category(
 ) -> dict:
     """Get recent bioRxiv papers filtered by subject category.
 
+    Fetches pages incrementally and stops early once enough matches are
+    found, avoiding unnecessary API calls.
+
     Args:
         category: bioRxiv category (e.g. "microbiology", "immunology",
                   "bioinformatics", "cell biology", "molecular biology").
@@ -77,20 +90,23 @@ def get_recent_papers_by_category(
     """
     try:
         client = _get_client()
-        all_papers = client.get_all_recent_papers(
-            interval_days=interval_days, max_papers=500
+        cat_lower = category.lower()
+
+        def category_filter(paper):
+            return cat_lower in paper.category.lower()
+
+        matched, total_scanned = client.search_recent_with_filter(
+            interval_days=interval_days,
+            filter_fn=category_filter,
+            max_results=max_results,
         )
-        filtered = [
-            p for p in all_papers
-            if category.lower() in p.category.lower()
-        ][:max_results]
 
         return {
             "status": "success",
             "data": {
-                "total_scanned": len(all_papers),
-                "matched": len(filtered),
-                "papers": [p.to_dict() for p in filtered],
+                "total_scanned": total_scanned,
+                "matched": len(matched),
+                "papers": [p.to_dict() for p in matched],
             },
         }
     except Exception as e:

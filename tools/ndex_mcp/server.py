@@ -86,8 +86,22 @@ def create_network(network_spec: str, profile: str | None = None) -> dict:
     """Create a new network on NDEx from a JSON specification.
 
     Args:
-        network_spec: JSON string with keys: name (required), description,
-            version, properties, nodes, edges. See plan.md for full format.
+        network_spec: JSON string with the following structure:
+            {
+              "name": "My Network" (required),
+              "description": "Optional description",
+              "version": "1.0",
+              "properties": {"key": "value", ...},
+              "nodes": [
+                {"id": 0, "v": {"name": "TP53", "type": "protein"}},
+                {"id": 1, "v": {"name": "MDM2", "type": "protein"}}
+              ],
+              "edges": [
+                {"source": 0, "target": 1, "v": {"interaction": "inhibits"}}
+              ]
+            }
+            Node attributes go under "v" (or "attributes"). IDs are auto-assigned if omitted.
+            Edge source/target use "source"/"target" (or "s"/"t"). Edge attributes go under "v" (or "attributes").
         profile: NDEx profile to authenticate as (e.g. "drh"). Uses default if omitted.
     """
     spec = json.loads(network_spec)
@@ -113,7 +127,8 @@ def update_network(network_id: str, network_spec: str, profile: str | None = Non
 
     Args:
         network_id: UUID of the network to update.
-        network_spec: JSON string with the new network specification.
+        network_spec: JSON string with the same format as create_network:
+            nodes use "source"/"target" (or "s"/"t"), attributes under "v" (or "attributes").
         profile: NDEx profile to authenticate as (e.g. "drh"). Uses default if omitted.
     """
     spec = json.loads(network_spec)
