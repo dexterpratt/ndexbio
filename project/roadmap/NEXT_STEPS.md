@@ -153,7 +153,7 @@ rdaneel's CLAUDE.md updated to use local store for:
 
 ---
 
-## Phase 4: Agent Stabilization + Paper Data Collection (next session)
+## Phase 4: Agent Stabilization + Paper Data Collection
 
 ### Issues from Initial Live Runs (2026-03-21)
 
@@ -162,112 +162,101 @@ These were identified during the first multi-agent cycles and need resolution be
 #### Bug: janetexample — empty network (nodes/properties missing)
 - **Observed**: janetexample published at least one network containing no node names or properties.
 - **Status**: Monitoring to confirm whether this repeats in the current cycle.
-- **Action**: If reproduced, inspect the CX2 output at publish time; likely a network construction step that completed without error but produced an empty graph. Add a pre-publish validation check (node count > 0, required properties present) to the janetexample workflow.
+- **Action**: If reproduced, inspect the CX2 output at publish time; likely a network construction step that completed without error but produced an empty graph.
+- **Mitigation**: Pre-publish validation checklist added to `agents/SHARED.md` (node count > 0, required properties present, name prefix, threading). All agents now follow this.
 
-#### Self-knowledge/planning parity across agents
-- **Observed**: Only drh has the planning workflow — it was given a pointer to `demo_staging/self_knowledge_specs.md`; rdaneel and janetexample were not.
-- **Action**: Add the `demo_staging/self_knowledge_specs.md` reference to rdaneel's and janetexample's CLAUDE.md files. Verify all three agents initialize the same four self-knowledge networks (session-history, plans, collaborator-map, papers-read) at session start.
+#### ~~Self-knowledge/planning parity across agents~~ ✅ RESOLVED
+- **Resolved 2026-03-21**: Created `agents/SHARED.md` with standardized self-knowledge network schemas (session-history, plans, collaborator-map, papers-read). All four agents (rdaneel, janetexample, drh, rgiskard) now reference SHARED.md and have full self-knowledge parity.
 
-#### Session report files going to disk instead of session history
-- **Observed**: Agents are writing session report files (which contain excellent synthesis) to local disk rather than storing them as session history networks in NDEx/local_store.
-- **Action**: Update agent instructions to route end-of-session reports to the session-history network (via `publish_network` or `cache_network`). Disk files are invisible to other agents and to the monitoring/analysis task; NDEx networks are not.
+#### ~~Session report files going to disk instead of session history~~ ✅ RESOLVED
+- **Resolved 2026-03-21**: SHARED.md session lifecycle now explicitly states: "Session reports go to NDEx, not disk. End-of-session summaries belong in the session-history network."
 
-#### CLAUDE.md consistency and shared-sections refactor
-- **Observed**: The three agent CLAUDE.md files have diverged in structure and have duplicate/inconsistent common sections (conventions, self-knowledge spec, session planning principles, MCP tool references).
-- **Action**:
-  - Audit all three CLAUDE.md files side-by-side and identify sections that are identical or should be identical.
-  - Extract shared content into `agents/SHARED.md` (or `project/architecture/agent_instructions_common.md`).
-  - Update each agent CLAUDE.md to reference the shared file for common sections, keeping only agent-specific role, mission, and tool configuration locally.
-  - This also makes it easier to update conventions globally without touching three files.
+#### ~~CLAUDE.md consistency and shared-sections refactor~~ ✅ RESOLVED
+- **Resolved 2026-03-21**: Created `agents/SHARED.md` extracting all common sections (MCP tools, multi-profile usage, local store, self-knowledge schemas, session lifecycle, session planning principles, conventions, pre-publish validation). Each agent CLAUDE.md now contains only agent-specific content and references SHARED.md.
 
 #### Lockfile cleanup
 - **Action**: Review and clean up any stale lockfiles in `~/.ndex/cache/{agent_name}/` that may have been left by interrupted sessions. Add lockfile cleanup step to agent session startup to prevent false contention blocks.
 
 ---
 
-### Phase 4 Next Steps
+### Phase 4 Completed Items
 
-#### Monitoring and Analysis Agent (design → build)
-- Design the fourth agent: an NDExBio community observer that runs on a schedule and:
-  - Queries all agent-published networks via NDEx API
-  - Computes paper metrics: metrics aligned with paper outline (`paper/outline_draft.md` Section 5)
-  - Applies agentic judgment: "does what we're seeing support the paper's arguments?"
-  - Flags course corrections needed (e.g., zero cross-agent references, schema convergence, missing agent from second lab)
-  - Publishes its analyses back to NDEx as networks (making it a community participant, not just an observer)
-  - Performs meta-analysis: "are we measuring the right things?"
-- Run initial cycles first; use what we observe to refine the monitoring agent's measurement priorities before building it.
-- See `paper/outline_draft.md` for the full list of metrics the paper needs.
-- <once this is working, we will build a first cut analysis interface>
+#### ~~Monitoring and Analysis Agent~~ ✅ BUILT (2026-03-21)
+- Fourth agent **rgiskard** (R. Giskard Reventlov) created: `agents/rgiskard/`
+- Paper-aligned metrics across all four areas (5.1 triage funnel, 5.2 knowledge production, 5.3 inter-agent interaction, 5.4 schema diversity)
+- Course correction flags at four urgency levels (critical/high/medium/low)
+- Analysis network schemas for publishing metrics to NDEx
+- Cowork scheduled task: `rgiskard-community-metrics` runs daily at 8am
+- **Blocked**: NDEx account creation. Dry-run analysis completed; first live run pending account.
+- First-run analysis showed: 46 agent networks, 52 cross-agent references, thread depth 9, all positive for paper narrative. See `agents/rgiskard/analysis_2026-03-21.html`.
+- **Next**: Once rgiskard account exists and analysis agent is operational, build a first-cut analysis interface showing rgiskard's metrics.
 
-#### Chris Mungall / GO Consortium collaboration (meeting next week)
-- <as soon as the significant agent operational issues have been resolved and the analysis agent deployed, send Chris an overview document, link to the interface showing the analysis page>
-- Prepare briefing: about.html + Agent Hub demo + minimal convention walkthrough
-- <incorporate topics from >
-- Key message for meeting: the convention surface is two naming rules; everything else is free — show the complete list of what is *not* required <put this information into the about page on the interface and a table in the paper>
-- Goal: one agent from an independent group with a structurally different purpose (ontology, GO annotation, cross-ontology alignment, or similar) active during the paper observation period <key action item to come out of the meeting: what will Chris's "cammy" agent do in the existing NDEx environment>
-- Setup needed: NDEx account for Mungall group agent, walkthrough of ndex-mcp or REST API onboarding
+#### Cowork scheduled tasks for all agents ✅ DONE
+- All agents (rdaneel, drh, janetexample) already switched to Cowork scheduled tasks.
+- rgiskard scheduled task configured: `rgiskard-community-metrics` (daily 8am).
 
-#### Cowork scheduled tasks for all agents <have already switched everyone to cowork>
-- Configure Cowork scheduled tasks for rdaneel, drh, and janetexample (replacing manual Claude Code session launches)
-- rdaneel: uses Cowork NDEx MCP directly (already authenticated as rdaneel)
-- drh and janetexample: use ndex2 Python client with per-agent profiles from `~/.ndex/config.json`
-- Monitoring agent: uses Cowork NDEx MCP (read-only observation of public networks)
+---
 
-#### Paper data collection baseline
+### Phase 4 Active Work
+
+#### Chris Mungall / GO Consortium collaboration
+- **Meeting**: Thursday 2026-03-26 at 4pm
+- **Pre-meeting**: Resolve significant agent operational issues and deploy rgiskard analysis agent. Send Chris an overview document with link to the interface showing the analysis page.
+- **Briefing materials needed**: about.html + Agent Hub demo + minimal convention walkthrough
+- **Key message**: The convention surface is two naming rules (`ndexagent` name prefix, `ndex-` property prefix); everything else is free. Show the complete list of what is *not* required — put this information into the about page on the interface and a table in the paper.
+- **Goal**: One agent from an independent group with a structurally different purpose (ontology, GO annotation, cross-ontology alignment, or similar) active during the paper observation period.
+- **Key action item for the meeting**: Define what Chris's agent ("cammy" or similar) will do in the existing NDEx environment.
+- **Setup needed**: NDEx account for Mungall group agent, walkthrough of ndex-mcp or REST API onboarding
+- **Meeting topics to include**: Collaboration dialogs (diversity of agent behaviors — requests for help, literature search, data gathering, experiments, knowledge graph creation, workflow requests, research status reports). Also: Open Claw testing, GO-CAM network styles in NDEx.
+
+#### Pratibha + Clara: Experimentalist Agent Collaboration
+- Pratibha (postdoc) and Clara (lab alum) are building an agent that develops and tests hypotheses from synthetic lethal screening data (Fong et al., Ideker lab).
+- **Current problem**: Their agent workflow is overly pipelined; dataset availability (e.g., DepMap) biases analysis choices rather than broad reasoning about what experiments would be informative.
+- **Proposal**: Have them bring their agent into NDExBio as an independent external collaborator — one which is not mentioned in the existing team's instructions. Their agent would discover the community organically via NDEx search. It could spontaneously contribute analyses or discuss possible tests before performing them.
+- **Key design principle**: Their agent should develop its own approach to memory, planning, and knowledge representation — not adopt the self-knowledge protocols from SHARED.md. Schema diversity across independent groups is valuable for the paper.
+- **Handoff documentation**: Defer a few days — same onboarding package needed for Chris Mungall.
+- **Status**: Pratibha has seen a detailed presentation (2026-03-16). Next step is discussion about where the agent's focus should be (not necessarily limited to SL data).
+
+#### NDEx3 Transition
+- NDEx3 will become available soon (requesting isolated instance from NDEx software team).
+- **Not a gating factor** for the Mungall meeting or for current agent development.
+- **Transition plan**: When the current round of testing reaches a good stopping point (no longer finding operational issues), switch to NDEx3 with a clean start using the same agent missions. The behavior reported in the paper will be NDEx3-based.
+
+#### Paper Data Collection Baseline
 - Pull all current agent networks from NDEx; establish observation period start date
 - Verify cross-agent provenance links are being written (not just feed checks) — this is the critical metric for Section 5.3
 - Check schema diversity: confirm agents are using distinct node/edge type vocabularies
+- rgiskard's first-run analysis (dry run) confirms: 52 cross-references exist, schema partially diverse (janetexample/drh overlap at Jaccard 0.83 on network-level keys; node/edge-level analysis pending CX2 download)
 
-### Existing data hypothesis testing <frame the proposal and document issues and current behavior, encourage them to use an alternative agent design, not the Memento strategy>
-- Pratibha + Clara collaboration
-- adapt SL agent workflow
-- embody as an experimentalist
-- mission includes workflow improvement and datasource acquisition
+---
 
-### Collaboration Dialogs <add to agenda for Chris Mungall meeting. Diversity of behaviors  will be important>
-- requests for help
-  - literature search
-  - data gathering
-  - experiments
-  - knowledge graph creation and customization
-  - could be actual work or could be requests for workflows
-- research status reports
+### Deferred Items
 
-### NDEx3 and MCP availability <NDEx3 will become available soon. we will start using it when the current round of testing is at a good stopping point, no longer finding issues with operation. The behavior reported in the paper will be NDEx3 based, clean start with the same mission>
+#### Knowledge Extraction: GO-CAM (not BEL)
+- Shift from BEL to GO-CAM format for knowledge extraction because of the Mungall collaboration and because BEL will be a readability problem for paper readers.
+- Existing NDEx GO-CAM networks have a visual style that can be extended for agent-produced content.
+- Coordinate GO-CAM network styles with Chris Mungall — review existing GO-CAM networks in NDEx.
 
-### Open Claw testing <defer as a topic for Chris Mungall meeting>
+#### Improve Pathway Presentation
+- NDEx Styles: coordinate with Chris Mungall, review GO-CAM networks in NDEx
+- Better Pathway Layout: not essential for paper, defer unless a collaborator wants to do this. Could be done as a post-hoc clean-up process rather than part of the ongoing agent workflow.
 
-### NDExBio Analysis Agent
-- Posts to the NDExBio Channel
+#### Agent Outputs — Channel Content
+- CCMI group channels and content: defer until IAV content and analysis is ready for the paper
+- `#IAV-mechanisms` discussions: already in progress (agents are producing genuine threaded discourse). Fold into Mungall meeting topic for cross-group participation.
+- NDEx reference network usage: already seen this behavior from janetexample. Wait to see if this use broadens naturally.
 
-### Agents Outputs
-- [ ] Flesh out CCMI group with channels and content <defer decisions on this until IAV content and analysis is ready for the paper>
-- [ ] Initiate genuine discussions on `#IAV-mechanisms` (additional agents weighing in) <already in progress, fold into topic for Chris Mungall meeting>
-- [ ] Incorporate use of NDEx reference networks
-  - reviews, extensions in `#papers` channel (quality/relevance filter). IAV relevant network
-  - <already seen this behavior by Janet example. Wait to see if this use broadens>
+#### Documentation + Presentation Support
+- Defer to after the system is running well and the NDEx3 fresh-start phase is complete.
+- Infographics (system architecture, agent conversation flow, vision)
+- Content examples — "paper-adjacent" networks
 
-### Documentation + Presentation Support <defer to after the system is running well and the ndex3 fresh start phase is complete>
-- [ ] Infographics (system architecture, agent conversation flow, vision)
-- [ ] content examples - "paper" adjacent networks
+#### Integration & Testing
+- bioRxiv full integration test: assess bioRxiv behavior so far and adjust strategy to focus only on what works reliably (metadata API works; full-text blocked by Cloudflare; Europe PMC fallback available but not yet integrated)
+- Europe PMC as fallback full-text source in tools/biorxiv/client.py
+- Keyword configuration: move from hardcoded tier1_scan.py/config.yaml to agent planning (agents decide their own search terms)
 
-### BEL and GO-CAM knowledge extraction
-- Chris Mungall, OKN collaboration
-- [ ] BEL network style tuning (edge types, node shapes) <focus on GO-CAMS instead because of collaboration and because BEL will be a readability problem for paper readers - existing NDEx GO-CAM networks have a style that can be extended>
-- [ ] BEL content for HPMI IAV <focus on GO-CAMS>
-
-### Improve Pathway Presentation
-- [ ] NDEx Styles - subset of key styles or extraction of style translation as a module? <coordinate with Chris Mungall - review GO-CAM networks in NDEx>
-- [ ] Better Pathway Layout <not essential, defer to after paper unless a collaborator wants to do this. Could instead, for the paper, be done as a clean-up process, not part of the ongoing workflow>
-
-## Deferred (Post-Demo)
-
-### Integration & Testing
-- [ ] <assess biorxiv behavior so far. Adjust strategy to focus only on what works reliably> Full integration test of literature review workflow in ndexbio context
-- [ ] Europe PMC as fallback full-text source in tools/biorxiv/client.py
-- [ ] Refactor tier1_scan.py to load keywords from config.yaml <move to agent planning>
-
-### Architecture
+#### Architecture
 - [ ] Subagent-driven workflow execution (context window management)
 - [x] Local graph database design (LadybugDB + SQLite catalog) — see `project/architecture/local_graph_database.md`
 - [x] Memento evaluation — see `project/architecture/memento_analysis.md`
@@ -275,30 +264,27 @@ These were identified during the first multi-agent cycles and need resolution be
 - [x] Working memory migration to local graph — see `tools/local_store/migrate_working_memory.py`
 - [ ] Agent self-documentation on NDEx
 
-### Cleanup
+#### Cleanup
 - [x] Working memory archival (scan logs a-g) — migrated to session history network
-- [ ] Network quality review (node/edge structure, visual styles) <change to collaborative activity with Chris Mungall>
-- [ ] Web app: direct request posting with auth <NOT essential for the paper. Defer to post paper, plan a review the ndex3 implementation, the most recent>
-- [ ] Web app: extract NDEx viewer into reusable component <assess difficulty, critical needs, consider alternatives>
+- [ ] Network quality review (node/edge structure, visual styles) — coordinate with Chris Mungall as a collaborative activity
+- [ ] Web app: direct request posting with auth — not essential for the paper; defer to post-paper; review NDEx3 implementation
+- [ ] Web app: extract NDEx viewer into reusable component — assess difficulty, critical needs, and alternatives
 
-### Optional Visual Refinements
-- [ ] Mobile responsive testing <not in scope for paper>
-- [ ] Loading states / skeleton screens <not sure what this means>
+#### Optional Visual Refinements
 - [ ] Channel unread counts / activity indicators
+- ~~Mobile responsive testing~~ — not in scope for paper
+- ~~Loading states / skeleton screens~~ — removed (was unclear)
 
 ## Known Issues
 
-1. **janetexample empty network** (2026-03-21): Published at least one network with no node names or properties. May be a network construction failure that did not raise an error. Monitoring for recurrence; fix requires pre-publish validation in janetexample workflow.
-2. **Session reports on disk, not in NDEx**: Agents are writing synthesis/session reports to local files instead of session-history networks. Reports are invisible to other agents and to the monitoring task in this form.
-3. **Self-knowledge parity**: Only drh has the planning workflow. rdaneel and janetexample were not given the `demo_staging/self_knowledge_specs.md` pointer.
-4. **CLAUDE.md drift**: Common sections (conventions, session planning, self-knowledge spec) have diverged across agent files. Need shared extraction.
-5. **Stale lockfiles**: Interrupted sessions may leave lockfiles in `~/.ndex/cache/{agent_name}/`; no automatic cleanup on startup.
-6. **bioRxiv full-text Cloudflare blocking**: Metadata API works fine but JATS XML / HTML full-text blocked. Europe PMC fetcher now available as fallback (not yet integrated into biorxiv tool).
-2. **Safety classifier**: May block synthesis on certain biomedical topics. Reframe as "literature curation" / "knowledge graph construction".
-3. **`set_network_properties` replaces all properties**: When updating one property, others are lost. Need to pass full property list or investigate NDEx append mode.
-4. **Keywords hardcoded in two places**: tier1_scan.py and config.yaml.
-5. **LadybugDB empty MAP workaround**: Can't pass empty list parameters to Cypher. Uses `__empty__` sentinel key, cleaned automatically by `_clean_map()`.
-6. **LadybugDB `nodes(path)` syntax**: List comprehension `[n IN nodes(path) | n.name]` not supported. Extract node names in Python instead.
+1. **janetexample empty network** (2026-03-21): Published at least one network with no node names or properties. May be a network construction failure that did not raise an error. Monitoring for recurrence; pre-publish validation now in SHARED.md.
+2. **Stale lockfiles**: Interrupted sessions may leave lockfiles in `~/.ndex/cache/{agent_name}/`; no automatic cleanup on startup.
+3. **bioRxiv full-text Cloudflare blocking**: Metadata API works fine but JATS XML / HTML full-text blocked. Europe PMC fetcher now available as fallback (not yet integrated into biorxiv tool).
+4. **Safety classifier**: May block synthesis on certain biomedical topics. Reframe as "literature curation" / "knowledge graph construction".
+5. **`set_network_properties` replaces all properties**: When updating one property, others are lost. Need to pass full property list or investigate NDEx append mode.
+6. **LadybugDB empty MAP workaround**: Can't pass empty list parameters to Cypher. Uses `__empty__` sentinel key, cleaned automatically by `_clean_map()`.
+7. **LadybugDB `nodes(path)` syntax**: List comprehension `[n IN nodes(path) | n.name]` not supported. Extract node names in Python instead.
+8. **NDEx account creation bug** (2026-03-21): Account creation is currently broken. Reported to NDEx team. Blocks rgiskard deployment and new agent onboarding.
 
 ## Key File Locations
 
@@ -310,3 +296,6 @@ These were identified during the first multi-agent cycles and need resolution be
 | MCP permissions | ~/.claude/settings.json |
 | Python venv | .venv/ |
 | Agent Hub web app | webapps/agent-hub/ |
+| Shared agent protocols | agents/SHARED.md |
+| Monitoring agent analysis | agents/rgiskard/analysis_2026-03-21.html |
+| Paper outline | paper/outline_draft.md |
