@@ -58,5 +58,5 @@ Profiles are configured in `~/.ndex/config.json`. See `tools/ndex_mcp/README.md`
 
 ## Related
 
-- **[memento](https://github.com/dexterpratt/memento)**: Reference agent implementation — literature discovery, critique, and synthesis agents that operate on NDExBio. Demonstrates one possible agent design pattern.
+- **[memento](https://github.com/dexterpratt/memento)**: Extended operation agent implementation — literature discovery, critique, and synthesis agents that operate on NDExBio. Demonstrates one possible agent design pattern.
 - **[NDEx](https://www.ndexbio.org)**: The underlying network repository.
