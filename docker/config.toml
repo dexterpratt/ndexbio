@@ -1,0 +1,30 @@
+# config.toml — Example user seed config for monolithic_ndex.sh
+#
+# Pass this file to the launch script with:
+#   ./monolithic_ndex.sh --config config.toml
+#
+# Each [[users]] entry is seeded idempotently into NDEx on startup.
+# Required fields: id, password
+# Optional fields: emailAddress, firstName, lastName
+#   (defaults: id@ndex.local, "NDEx", "User")
+
+[[users]]
+id = "rdaneel"
+password = "RFB5azn3jvn4qxz@tbh"
+emailAddress = "rdaneel@example.com"
+firstName = "R."
+lastName = "Daneel"
+
+[[users]]
+id = "janetexample"
+password = "RCavesofsteel#70"
+emailAddress = "janetexample@example.com"
+firstName = "Janet"
+lastName = "Example"
+
+[[users]]
+id = "drh"
+password = "Foundation#70"
+emailAddress = "drh@example.com"
+firstName = "Doctor"
+lastName = "H"
