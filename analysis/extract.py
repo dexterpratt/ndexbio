@@ -34,9 +34,17 @@ def _ts_to_iso(epoch_ms: int | None) -> str | None:
     return datetime.fromtimestamp(epoch_ms / 1000, tz=timezone.utc).isoformat()
 
 
-def connect(server: str = NDEX_SERVER) -> ndex2.client.Ndex2:
-    """Connect to NDEx (anonymous - read-only access to public networks)."""
-    return ndex2.client.Ndex2(server)
+def connect(
+    server: str = NDEX_SERVER,
+    username: str | None = None,
+    password: str | None = None,
+) -> ndex2.client.Ndex2:
+    """Connect to NDEx. Authenticates if credentials are provided."""
+    if username and password:
+        return ndex2.client.Ndex2(
+            server, username, password, skip_version_check=True
+        )
+    return ndex2.client.Ndex2(server, skip_version_check=True)
 
 
 def fetch_agent_network_summaries(
@@ -44,21 +52,51 @@ def fetch_agent_network_summaries(
     username: str,
     limit: int = 500,
 ) -> list[dict]:
-    """Fetch all network summaries for one agent account."""
+    """Fetch all network summaries for one agent account.
+
+    Tries get_user_network_summaries first (works on public NDEx).
+    Falls back to search if that fails (works on local servers where
+    listing another user's networks requires admin access).
+    """
+    # Try direct user listing first
+    try:
+        summaries = []
+        offset = 0
+        batch_size = min(limit, 100)
+        while offset < limit:
+            batch = client.get_user_network_summaries(
+                username, offset=offset, limit=batch_size
+            )
+            if not batch:
+                break
+            summaries.extend(batch)
+            offset += len(batch)
+            if len(batch) < batch_size:
+                break
+            time.sleep(0.2)
+        return summaries
+    except Exception:
+        pass
+
+    # Fallback: search for networks by agent name
     summaries = []
     offset = 0
     batch_size = min(limit, 100)
     while offset < limit:
-        batch = client.get_user_network_summaries(
-            username, offset=offset, limit=batch_size
+        results = client.search_networks(
+            search_string=f"ndexagent {username}",
+            account_name=username,
+            start=offset,
+            size=batch_size,
         )
+        batch = results.get("networks", [])
         if not batch:
             break
         summaries.extend(batch)
         offset += len(batch)
         if len(batch) < batch_size:
             break
-        time.sleep(0.2)  # be polite to the server
+        time.sleep(0.2)
     return summaries
 
 
@@ -240,6 +278,22 @@ def extract_network_record(
     return record
 
 
+def _load_credentials(server: str) -> tuple[str | None, str | None]:
+    """Try to load credentials for the given server from ~/.ndex/config.json."""
+    config_path = Path.home() / ".ndex" / "config.json"
+    try:
+        data = json.loads(config_path.read_text())
+        profiles = data.get("profiles", {})
+        # Find first profile whose server matches
+        for name, p in profiles.items():
+            profile_server = p.get("server", data.get("server", ""))
+            if profile_server == server:
+                return p.get("username"), p.get("password")
+        return None, None
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None, None
+
+
 def extract_all(
     download_cx2: bool = True,
     output_path: str | None = None,
@@ -255,8 +309,10 @@ def extract_all(
     Returns:
         Complete dataset dict.
     """
-    client = connect()
-    print(f"Connected to {NDEX_SERVER}")
+    username, password = _load_credentials(NDEX_SERVER)
+    client = connect(NDEX_SERVER, username, password)
+    auth_status = "authenticated" if username else "anonymous"
+    print(f"Connected to {NDEX_SERVER} ({auth_status})")
 
     all_networks = []
     uuid_to_owner = {}  # for resolving cross-references

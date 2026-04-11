@@ -28,3 +28,10 @@ password = "Foundation#70"
 emailAddress = "drh@example.com"
 firstName = "Doctor"
 lastName = "H"
+
+[[users]]
+id = "rgiskard"
+password = "Robotsofdawn#70"
+emailAddress = "rgiskard@example.com"
+firstName = "R."
+lastName = "Giskard"

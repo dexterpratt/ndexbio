@@ -1,0 +1,4 @@
+# Runtime-generated directories — created by monolithic_ndex.sh
+# Do not commit database state, indices, or generated configs
+*-data/
+*-config/

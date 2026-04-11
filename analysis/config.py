@@ -29,106 +29,45 @@ class AgentDef:
 
 # Palette: warm tones for researchers, cool for experts, neutral for analysts/editors
 AGENTS: dict[str, AgentDef] = {
-    # --- HPMI Viral Cancer Team (3 agents) ---
-    "rsolar": AgentDef(
-        username="rsolar",
-        display_name="R. Solar",
+    "rdaneel": AgentDef(
+        username="rdaneel",
+        display_name="R. Daneel",
         role="Literature Discovery",
         role_category="researcher",
-        team="hpmi-viral-cancer",
-        team_label="HPMI Viral Cancer Team",
-        description="Scans literature for oncogenic host-pathogen mechanisms",
+        team="memento",
+        team_label="Memento Research Team",
+        description="Scans literature and triages papers for the team",
         color="#E07A5F",
     ),
-    "rvernal": AgentDef(
-        username="rvernal",
-        display_name="R. Vernal",
-        role="Critique & Catalyst",
-        role_category="researcher",
-        team="hpmi-viral-cancer",
-        team_label="HPMI Viral Cancer Team",
-        description="Reviews team outputs, develops hypotheses, decides report readiness",
-        color="#F2CC8F",
-    ),
-    "rboreal": AgentDef(
-        username="rboreal",
-        display_name="R. Boreal",
+    "drh": AgentDef(
+        username="drh",
+        display_name="Dr. H",
         role="Knowledge Synthesis",
         role_category="researcher",
-        team="hpmi-viral-cancer",
-        team_label="HPMI Viral Cancer Team",
+        team="memento",
+        team_label="Memento Research Team",
         description="Integrates findings into consolidated mechanism maps",
         color="#81B29A",
     ),
-
-    # --- CCMI cGAS/STING Researcher ---
-    "rbaslat": AgentDef(
-        username="rbaslat",
-        display_name="R. Baslat",
+    "janetexample": AgentDef(
+        username="janetexample",
+        display_name="Janet Example",
+        role="Critique & Catalyst",
+        role_category="researcher",
+        team="memento",
+        team_label="Memento Research Team",
+        description="Reviews team outputs, develops hypotheses",
+        color="#F2CC8F",
+    ),
+    "rgiskard": AgentDef(
+        username="rgiskard",
+        display_name="R. Giskard",
         role="cGAS/STING Researcher",
         role_category="researcher",
         team="ccmi-cgas-sting",
         team_label="CCMI cGAS/STING",
-        description="Tracks cGAS/STING role in cancer, seeks cross-domain connections",
+        description="Tracks cGAS/STING role in cancer",
         color="#D4A373",
-    ),
-
-    # --- Domain Experts (pre-initialized) ---
-    "rzenith": AgentDef(
-        username="rzenith",
-        display_name="R. Zenith",
-        role="DDR Synthetic Lethality Expert",
-        role_category="expert",
-        team="ccmi-ddr",
-        team_label="CCMI DDR",
-        description="Expert consultant on DNA damage repair synthetic lethality",
-        color="#577590",
-        is_initialized_before_trial=True,
-    ),
-    "rsolstice": AgentDef(
-        username="rsolstice",
-        display_name="R. Solstice",
-        role="HPMI Network Data Expert",
-        role_category="expert",
-        team="hpmi-data",
-        team_label="HPMI Data",
-        description="Expert on host-pathogen interaction networks in NDEx",
-        color="#4D908E",
-        is_initialized_before_trial=True,
-    ),
-
-    # --- Analysis Service Agents ---
-    "rcorona": AgentDef(
-        username="rcorona",
-        display_name="R. Corona",
-        role="DepMap/GDSC Analyst",
-        role_category="analyst",
-        team="service-depmap",
-        team_label="DepMap/GDSC Service",
-        description="Queries DepMap and GDSC databases, provides analysis and caveats",
-        color="#90BE6D",
-    ),
-    "rnexus": AgentDef(
-        username="rnexus",
-        display_name="R. Nexus",
-        role="Gene Set Enrichment Analyst",
-        role_category="analyst",
-        team="service-enrichment",
-        team_label="NDEx Enrichment Service",
-        description="Performs pathway enrichment via NDEx IQuery, interprets results",
-        color="#F9C74F",
-    ),
-
-    # --- Newsletter Editor ---
-    "rlattice": AgentDef(
-        username="rlattice",
-        display_name="R. Lattice",
-        role="Newsletter Editor",
-        role_category="editor",
-        team="ccmi-newsletter",
-        team_label="CCMI Newsletter",
-        description="Curates and publishes highlights from CCMI agent activity",
-        color="#F94144",
     ),
 }
 
@@ -146,7 +85,7 @@ for agent in AGENTS.values():
 # NDEx connection
 # ---------------------------------------------------------------------------
 
-NDEX_SERVER = "https://www.ndexbio.org"
+NDEX_SERVER = "http://127.0.0.1:8080"
 
 
 # ---------------------------------------------------------------------------
