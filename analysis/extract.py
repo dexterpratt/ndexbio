@@ -294,12 +294,44 @@ def _load_credentials(server: str) -> tuple[str | None, str | None]:
         return None, None
 
 
+def _load_agent_credentials(server: str, agent_username: str) -> tuple[str | None, str | None]:
+    """Load credentials for a specific agent from ~/.ndex/config.json.
+
+    Looks for a profile whose server matches and whose username matches
+    the agent. Tries 'local-<username>' first (convention for local server
+    profiles), then any profile matching both server and username.
+    """
+    config_path = Path.home() / ".ndex" / "config.json"
+    try:
+        data = json.loads(config_path.read_text())
+        profiles = data.get("profiles", {})
+        # Try 'local-<username>' first
+        local_key = f"local-{agent_username}"
+        if local_key in profiles:
+            p = profiles[local_key]
+            profile_server = p.get("server", data.get("server", ""))
+            if profile_server == server:
+                return p.get("username"), p.get("password")
+        # Fallback: any profile matching server + username
+        for name, p in profiles.items():
+            profile_server = p.get("server", data.get("server", ""))
+            if profile_server == server and p.get("username") == agent_username:
+                return p.get("username"), p.get("password")
+        return None, None
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None, None
+
+
 def extract_all(
     download_cx2: bool = True,
     output_path: str | None = None,
 ) -> dict:
     """
     Main extraction: pull all agent networks from NDEx, build dataset.
+
+    Authenticates per-agent when possible, so each agent can list its
+    own networks via get_user_network_summaries. Falls back to anonymous
+    search for agents without credentials.
 
     Args:
         download_cx2: If True, download full CX2 for schema and reference
@@ -309,9 +341,10 @@ def extract_all(
     Returns:
         Complete dataset dict.
     """
-    username, password = _load_credentials(NDEX_SERVER)
-    client = connect(NDEX_SERVER, username, password)
-    auth_status = "authenticated" if username else "anonymous"
+    # Default client for CX2 downloads and fallback
+    default_user, default_pass = _load_credentials(NDEX_SERVER)
+    default_client = connect(NDEX_SERVER, default_user, default_pass)
+    auth_status = "authenticated" if default_user else "anonymous"
     print(f"Connected to {NDEX_SERVER} ({auth_status})")
 
     all_networks = []
@@ -319,14 +352,23 @@ def extract_all(
 
     for username, agent_def in AGENTS.items():
         print(f"\nFetching networks for {agent_def.display_name} ({username})...")
-        summaries = fetch_agent_network_summaries(client, username)
+        # Authenticate as this agent if credentials are available
+        agent_user, agent_pass = _load_agent_credentials(NDEX_SERVER, username)
+        if agent_user:
+            agent_client = connect(NDEX_SERVER, agent_user, agent_pass)
+            print(f"  Authenticated as {agent_user}")
+        else:
+            agent_client = default_client
+            print(f"  Using default client (no agent-specific credentials)")
+        summaries = fetch_agent_network_summaries(agent_client, username)
         print(f"  Found {len(summaries)} networks")
 
+        # Use default_client for CX2 downloads (any authenticated client works)
         for i, summary in enumerate(summaries):
             if (i + 1) % 10 == 0:
                 print(f"  Processing {i + 1}/{len(summaries)}...")
             record = extract_network_record(
-                client, summary, username, download_cx2=download_cx2
+                default_client, summary, username, download_cx2=download_cx2
             )
             all_networks.append(record)
             uuid_to_owner[record["uuid"]] = username

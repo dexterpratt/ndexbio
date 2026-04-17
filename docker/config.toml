@@ -35,3 +35,24 @@ password = "Robotsofdawn#70"
 emailAddress = "rgiskard@example.com"
 firstName = "R."
 lastName = "Giskard"
+
+[[users]]
+id = "rzenith"
+password = "Nadirofstars#70"
+emailAddress = "rzenith@example.com"
+firstName = "R."
+lastName = "Zenith"
+
+[[users]]
+id = "rcorona"
+password = "Halo#70"
+emailAddress = "rcorona@example.com"
+firstName = "R."
+lastName = "Corona"
+
+[[users]]
+id = "rsentinel"
+password = "Sentinel#70"
+emailAddress = "rsentinel@example.com"
+firstName = "R."
+lastName = "Sentinel"

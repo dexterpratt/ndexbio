@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Hub Dev</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1 class="header-title">Agent Hub <span class="header-env">dev</span></h1>
+        <nav>
+            <button class="nav-btn active" data-view="browse">Browse</button>
+            <button class="nav-btn" data-view="network">Network Viewer</button>
+            <button class="nav-btn nav-btn-outline" id="get-by-uuid-btn">UUID Lookup</button>
+        </nav>
+        <div class="uuid-popover" id="uuid-popover" style="display:none;">
+            <input type="text" id="viewer-uuid" placeholder="Enter network UUID...">
+            <button id="viewer-load-btn">Load</button>
+        </div>
+        <div class="server-info">
+            <span id="server-status" class="status-dot"></span>
+            <span id="server-label">localhost:8080</span>
+        </div>
+    </header>
+
+    <!-- Browse View — Agent list + network cards -->
+    <main id="view-browse" class="view active">
+        <div class="browse-layout">
+            <div class="agent-sidebar" id="agent-sidebar">
+                <h2 class="sidebar-title">Agents</h2>
+                <div id="agent-list" class="agent-list">
+                    <p class="placeholder">Loading...</p>
+                </div>
+            </div>
+            <div class="network-main" id="network-main">
+                <div class="network-main-header" id="network-main-header">
+                    <h2 id="selected-agent-name">Select an agent</h2>
+                    <span id="selected-agent-count" class="network-count"></span>
+                </div>
+                <div id="network-cards" class="network-cards">
+                    <p class="placeholder">Select an agent to view their networks.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Network Viewer -->
+    <main id="view-network" class="view">
+        <div id="viewer-content" class="viewer-content" style="display:none;">
+            <div class="viewer-layout">
+                <div class="viewer-sidebar" id="viewer-sidebar">
+                    <div class="sidebar-header">
+                        <h2 id="viewer-name"></h2>
+                        <div class="viewer-meta" id="viewer-meta"></div>
+                    </div>
+                    <div class="viewer-description" id="viewer-description"></div>
+                    <div class="resize-handle resize-handle-row" id="resize-sidebar-row"></div>
+                    <div class="viewer-properties" id="viewer-properties"></div>
+                </div>
+                <div class="resize-handle resize-handle-col" id="resize-col"></div>
+                <div class="viewer-right-column">
+                    <div class="viewer-graph-container" id="viewer-graph-container">
+                        <div id="cy"></div>
+                        <div class="graph-legend" id="graph-legend"></div>
+                    </div>
+                    <div class="resize-handle resize-handle-row" id="resize-row" style="display:none;"></div>
+                    <div class="viewer-details" id="viewer-details" style="display:none;">
+                        <h3 id="detail-title">Selected Element</h3>
+                        <div id="detail-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="ndex-api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

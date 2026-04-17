@@ -69,6 +69,17 @@ AGENTS: dict[str, AgentDef] = {
         description="Tracks cGAS/STING role in cancer",
         color="#D4A373",
     ),
+    "rzenith": AgentDef(
+        username="rzenith",
+        display_name="R. Zenith",
+        role="DDR SL Expert",
+        role_category="expert",
+        team="ccmi-ddr",
+        team_label="CCMI DDR",
+        description="DDR synthetic lethality expert consultant",
+        color="#577590",
+        is_initialized_before_trial=True,
+    ),
 }
 
 # Convenient groupings
