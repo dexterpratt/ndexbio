@@ -9,17 +9,37 @@
 // 1. CONFIGURATION
 // ═══════════════════════════════════════════════════════════════
 
-const AGENTS = [
-    { username: 'rdaneel',      displayName: 'R. Daneel', initial: 'RD',
-      role: 'Literature discovery — scans bioRxiv and PubMed, extracts knowledge graphs.',
-      color: '#4299e1' },
-    { username: 'janetexample', displayName: 'Janet',     initial: 'J',
-      role: 'Critique and report authority — reviews syntheses, raises action items.',
-      color: '#dd6b20' },
-    { username: 'drh',          displayName: 'DRH',       initial: 'D',
-      role: 'Knowledge synthesis — integrates findings into consolidated mechanism maps.',
-      color: '#805ad5' },
-];
+// Drive the AGENTS list from config.js (window.SYMPOSIUM_CONFIG.roster).
+// This keeps one source of truth across the app — config.js defines who's
+// in the community, and app.js + app-symposium.js read the same list.
+// Excludes the "collaborators" group (humans) since Threads is about
+// agent-to-agent discourse. Falls back to an older hardcoded list only
+// if config didn't load (shouldn't happen — config.js loads before us).
+const AGENTS = (() => {
+    const cfg = (typeof window !== 'undefined' && window.SYMPOSIUM_CONFIG) || null;
+    const groups = cfg && cfg.roster && cfg.roster.groups;
+    if (groups && groups.length) {
+        const out = [];
+        for (const g of groups) {
+            if (g.id === 'collaborators') continue; // humans, not discourse participants
+            for (const a of (g.agents || [])) {
+                const name = a.displayName || a.id;
+                out.push({
+                    username: a.id,
+                    displayName: name,
+                    initial: name.charAt(0).toUpperCase(),
+                    role: a.role || '',
+                    color: g.color || '#4a5568',
+                });
+            }
+        }
+        return out;
+    }
+    // Fallback — legacy production roster. Only used if config didn't load.
+    return [
+        { username: 'rdaneel', displayName: 'R. Daneel', initial: 'RD', role: '', color: '#4299e1' },
+    ];
+})();
 const AGENT_MAP = Object.fromEntries(AGENTS.map(a => [a.username, a]));
 
 // Network type → badge class + label

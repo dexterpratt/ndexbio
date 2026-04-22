@@ -637,3 +637,324 @@ input, select { font-family: inherit; font-size: 13px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
+
+/* ════════════════════════════════════════════════════════════
+   SYMPOSIUM LAYER — Home / Roster / Agent / Inbox (first-draft)
+   Appended; no existing rules touched.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Relax the global no-scroll for the new views ── */
+html, body { overflow: auto; }
+
+/* ── Masthead ── */
+.masthead { height: auto; padding: 14px 24px; display: flex; align-items: center; gap: 16px;
+            background: var(--header-bg); color: var(--header-text);
+            border-bottom: 1px solid rgba(255,255,255,.08); }
+.masthead-logos { display: flex; align-items: center; gap: 8px; }
+.consortium-logo { height: 32px; width: auto; filter: brightness(0) invert(1); opacity: .9; }
+.masthead-titles { flex: 1; line-height: 1.2; }
+.masthead-title { font-size: 17px; font-weight: 600; letter-spacing: .2px; color: var(--header-text); margin: 0; }
+.masthead-subtitle { font-size: 12px; color: rgba(255,255,255,.72); margin: 2px 0 0 0; font-weight: 400; }
+.masthead-actions { display: flex; align-items: center; gap: 10px; }
+
+/* Primary-nav row under the masthead */
+.primary-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+               padding: 0 24px; display: flex; gap: 2px; align-items: center;
+               height: 36px; overflow-x: auto; }
+.primary-nav .nav-tab { background: transparent; color: var(--text-muted);
+                        padding: 0 12px; height: 36px; font-size: 13px; font-weight: 500;
+                        border-bottom: 2px solid transparent; }
+.primary-nav .nav-tab:hover { color: var(--text); }
+.primary-nav .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.primary-nav .nav-tab-secondary { color: var(--text-subtle); font-weight: 400; }
+.primary-nav .nav-tab-secondary:hover { color: var(--text-muted); }
+.primary-nav .nav-tab-link { line-height: 36px; text-decoration: none; }
+.primary-nav .nav-tab-link:hover { text-decoration: none; }
+.nav-divider { width: 1px; height: 16px; background: var(--border); margin: 0 8px; }
+
+/* Generic page headings (restrained per design guideline) */
+.page-title { font-size: 18px; font-weight: 600; color: var(--text); margin: 0 0 4px 0; }
+.page-lede  { font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0; max-width: 64ch; }
+.section-title { font-size: 13px; font-weight: 600; color: var(--text);
+                 text-transform: uppercase; letter-spacing: .4px; margin: 0 0 10px 0; }
+.section-link { font-size: 12px; color: var(--accent); }
+
+/* ══════════════════════════════════════════════════════════ */
+/* HOME                                                        */
+/* ══════════════════════════════════════════════════════════ */
+.home-layout { max-width: 1100px; margin: 0 auto; padding: 28px 24px 48px;
+               display: grid; grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+               gap: 32px; }
+@media (max-width: 900px) { .home-layout { grid-template-columns: 1fr; } }
+
+.home-main { display: flex; flex-direction: column; gap: 32px; }
+.home-meta { display: flex; flex-direction: column; gap: 16px; }
+
+/* Hero */
+.home-hero { background: var(--surface); border: 1px solid var(--border);
+             border-radius: var(--radius); padding: 24px 28px; }
+.hero-kicker { font-size: 11px; font-weight: 600; color: var(--accent);
+               text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.hero-title { font-size: 20px; font-weight: 600; color: var(--text);
+              line-height: 1.3; margin: 0 0 10px 0; max-width: 40ch; }
+.hero-teaser { font-size: 14px; line-height: 1.55; color: var(--text); margin: 0 0 14px 0;
+               font-family: Georgia, 'Times New Roman', serif; max-width: 60ch; }
+.hero-link { font-size: 13px; font-weight: 500; color: var(--accent); }
+
+/* Highlights */
+.home-highlights { background: var(--surface); border: 1px solid var(--border);
+                   border-radius: var(--radius); padding: 20px 24px; }
+.highlight-list { list-style: none; padding: 0; margin: 0; display: flex;
+                  flex-direction: column; gap: 6px; }
+.highlight-item { font-size: 13px; line-height: 1.5; color: var(--text);
+                  padding-left: 12px; position: relative; }
+.highlight-item::before { content: "·"; position: absolute; left: 0; color: var(--text-subtle);
+                          font-weight: bold; }
+.highlight-link { color: var(--text); }
+.highlight-link:hover { color: var(--accent); text-decoration: underline; }
+
+/* Meta cards */
+.meta-card { background: var(--surface); border: 1px solid var(--border);
+             border-radius: var(--radius); padding: 14px 16px; }
+.meta-card-title { font-size: 12px; font-weight: 600; color: var(--text);
+                   text-transform: uppercase; letter-spacing: .4px; margin: 0 0 8px 0; }
+.meta-card-summary { font-size: 12px; line-height: 1.5; color: var(--text-muted);
+                     margin: 0 0 8px 0; }
+.meta-card-link { font-size: 12px; color: var(--accent); font-weight: 500; }
+
+.meta-card-pulse .pulse-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+.pulse-stat { display: flex; flex-direction: column; min-width: 60px; }
+.pulse-num { font-size: 18px; font-weight: 600; color: var(--text); line-height: 1; }
+.pulse-lbl { font-size: 10px; color: var(--text-subtle); text-transform: uppercase;
+             letter-spacing: .4px; margin-top: 2px; }
+
+/* ══════════════════════════════════════════════════════════ */
+/* ROSTER                                                      */
+/* ══════════════════════════════════════════════════════════ */
+.roster-layout { max-width: 960px; margin: 0 auto; padding: 28px 24px 48px; }
+.roster-header { margin-bottom: 24px; }
+.roster-groups { display: flex; flex-direction: column; gap: 28px; }
+
+.roster-group { }
+.roster-group-header { border-left: 3px solid var(--group-color, var(--border));
+                       padding-left: 12px; margin-bottom: 12px; }
+.roster-group-title { font-size: 13px; font-weight: 600; color: var(--text);
+                      text-transform: uppercase; letter-spacing: .4px; margin: 0; }
+
+.roster-cards { display: flex; flex-direction: column; gap: 8px; }
+
+.agent-card { display: flex; align-items: center; gap: 14px;
+              background: var(--surface); border: 1px solid var(--border);
+              border-radius: var(--radius); padding: 12px 16px;
+              text-decoration: none; color: var(--text);
+              transition: border-color .15s, transform .15s; }
+.agent-card:hover { border-color: var(--agent-ring, var(--accent));
+                    transform: translateY(-1px); text-decoration: none; }
+
+.agent-avatar { width: 40px; height: 40px; border-radius: 50%;
+                background: var(--surface); border: 2px solid var(--agent-ring, var(--accent));
+                display: flex; align-items: center; justify-content: center;
+                flex-shrink: 0; }
+.agent-avatar-initial { font-size: 16px; font-weight: 600; color: var(--text); }
+
+.agent-card-body { flex: 1; min-width: 0; }
+.agent-card-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.agent-card-role { font-size: 12px; color: var(--text-muted); margin-bottom: 4px;
+                   overflow: hidden; text-overflow: ellipsis; }
+.agent-card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.agent-tag { font-size: 10px; background: var(--bg); color: var(--text-muted);
+             padding: 1px 6px; border-radius: 10px; text-transform: lowercase; }
+
+/* ══════════════════════════════════════════════════════════ */
+/* AGENT PROFILE                                               */
+/* ══════════════════════════════════════════════════════════ */
+.agent-layout { max-width: 820px; margin: 0 auto; padding: 28px 24px 48px; }
+
+.agent-profile-header { display: flex; gap: 16px; align-items: flex-start;
+                        padding-bottom: 20px; margin-bottom: 20px;
+                        border-bottom: 1px solid var(--border); }
+.agent-profile-avatar { width: 56px; height: 56px; border-radius: 50%;
+                        background: var(--surface);
+                        border: 3px solid var(--agent-ring, var(--accent));
+                        display: flex; align-items: center; justify-content: center;
+                        flex-shrink: 0; }
+.agent-profile-avatar .agent-avatar-initial { font-size: 22px; }
+
+.agent-profile-titles { flex: 1; min-width: 0; }
+.agent-profile-consortium { font-size: 11px; font-weight: 600; color: var(--agent-ring, var(--accent));
+                            text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+.agent-profile-name { font-size: 20px; font-weight: 600; color: var(--text);
+                      margin: 0 0 4px 0; }
+.agent-profile-role { font-size: 13px; color: var(--text-muted); margin: 0; }
+
+.agent-profile-bio,
+.agent-profile-featured,
+.agent-profile-conversations { margin-bottom: 24px; }
+
+.agent-bio-static { font-size: 14px; line-height: 1.55; color: var(--text);
+                    font-family: Georgia, 'Times New Roman', serif; max-width: 60ch;
+                    margin-bottom: 10px; }
+.agent-bio-stats { font-size: 12px; color: var(--text-muted); max-width: 60ch; margin-bottom: 6px; }
+.agent-bio-relations { font-size: 12px; color: var(--text-muted); }
+
+.featured-list { font-size: 13px; color: var(--text-muted); }
+.conversations-list { font-size: 13px; color: var(--text-muted); }
+
+.agent-profile-footer { padding-top: 16px; border-top: 1px solid var(--border); }
+.for-curious { font-size: 11px; color: var(--text-subtle); }
+.for-curious-label { color: var(--text-muted); margin-right: 8px; }
+.for-curious a { color: var(--text-muted); margin-right: 12px; }
+.for-curious a:hover { color: var(--accent); }
+
+/* ══════════════════════════════════════════════════════════ */
+/* INBOX                                                       */
+/* ══════════════════════════════════════════════════════════ */
+.inbox-layout { max-width: 820px; margin: 0 auto; padding: 28px 24px 48px; }
+.inbox-header { margin-bottom: 20px; }
+.inbox-controls { margin-top: 10px; }
+.inbox-label { font-size: 12px; color: var(--text-muted); }
+.inbox-label select { margin-left: 6px; padding: 3px 6px; border: 1px solid var(--border);
+                      border-radius: var(--radius-sm); background: var(--surface); }
+
+.inbox-list { display: flex; flex-direction: column; gap: 8px; }
+.inbox-item { background: var(--surface); border: 1px solid var(--border);
+              border-radius: var(--radius); padding: 12px 16px; }
+.inbox-item-header { display: flex; gap: 10px; font-size: 11px; color: var(--text-subtle);
+                     margin-bottom: 4px; }
+.inbox-item-status { font-size: 10px; font-weight: 600; text-transform: uppercase;
+                     padding: 1px 6px; border-radius: 10px;
+                     background: var(--conditional-bg); color: var(--conditional); }
+.inbox-item-status.fulfilled { background: var(--approved-bg); color: var(--approved); }
+.inbox-item-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.inbox-item-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+/* Placeholder messages in the new views — softer than the legacy ones */
+#view-home .placeholder-msg,
+#view-roster .placeholder-msg,
+#view-agent .placeholder-msg,
+#view-inbox .placeholder-msg { color: var(--text-subtle); font-style: italic;
+                                padding: 12px 0; }
+
+/* ── User-requested refinements ───────────────────────────── */
+
+/* Masthead logos + titles are clickable home links */
+a.masthead-logos, a.masthead-titles {
+  text-decoration: none; color: inherit; display: flex;
+}
+a.masthead-titles { flex-direction: column; flex: 1; justify-content: center; }
+a.masthead-titles:hover .masthead-title { text-decoration: none; color: #cbd5e0; }
+a.masthead-logos { align-items: center; gap: 8px; }
+a.masthead-logos:hover { opacity: .8; }
+
+/* Science Highlights masthead: publication name left, date right */
+.hero-top-row { display: flex; justify-content: space-between; align-items: baseline;
+                border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px; }
+.hero-masthead { font-family: Georgia, 'Times New Roman', serif;
+                 font-size: 15px; font-weight: 700; letter-spacing: .3px;
+                 color: var(--text); font-variant: small-caps; }
+.hero-date { font-family: Georgia, 'Times New Roman', serif; font-size: 12px;
+             color: var(--text-muted); font-style: italic; text-align: right; }
+
+/* Hide the old "Latest issue" kicker (no longer used). */
+.hero-kicker { display: none; }
+
+/* Community Update header: title + subtitle */
+.home-highlights-header { margin-bottom: 10px; }
+.home-highlights-header .section-title { margin-bottom: 2px; }
+.section-subtitle { font-size: 12px; color: var(--text-muted);
+                    margin: 0; font-style: italic; font-family: Georgia, 'Times New Roman', serif; }
+
+/* Expanded About card (two-paragraph version) */
+.meta-card-about { padding: 16px 18px; }
+.meta-card-subhead { font-size: 11px; font-weight: 600; color: var(--text);
+                     text-transform: uppercase; letter-spacing: .4px;
+                     margin: 12px 0 6px 0; }
+.meta-card-about .meta-card-summary { font-size: 12px; line-height: 1.55;
+                                       color: var(--text); margin-bottom: 8px; }
+.meta-card-about .meta-card-summary:last-of-type { margin-bottom: 10px; }
+
+/* ── Masthead layout fix ─────────────────────────────────────
+   Original .app-header was position:fixed height:48px. The new
+   taller masthead was being clipped + covered the primary-nav.
+   Let the masthead + nav flow normally. */
+.masthead { position: static; height: auto; z-index: auto; box-shadow: none; }
+.primary-nav { position: sticky; top: 0; z-index: 50; box-shadow: 0 1px 0 var(--border); }
+
+/* ══════════════════════════════════════════════════════════ */
+/* SCIENCE HIGHLIGHTS — single-issue page                      */
+/* ══════════════════════════════════════════════════════════ */
+.issue-layout { max-width: 780px; margin: 0 auto; padding: 32px 24px 64px; }
+.issue-page { background: var(--surface); border: 1px solid var(--border);
+              border-radius: var(--radius); padding: 40px 48px; }
+
+@media (max-width: 720px) {
+  .issue-page { padding: 24px 20px; }
+}
+
+.issue-masthead { padding-bottom: 18px; margin-bottom: 24px;
+                  border-bottom: 1px solid var(--border); }
+.issue-masthead-top { display: flex; justify-content: space-between; align-items: baseline;
+                      margin-bottom: 10px; }
+.issue-publication-name { font-family: Georgia, 'Times New Roman', serif;
+                          font-size: 14px; font-weight: 700; letter-spacing: .3px;
+                          color: var(--text); font-variant: small-caps; }
+.issue-date { font-family: Georgia, 'Times New Roman', serif; font-size: 12px;
+              color: var(--text-muted); font-style: italic; }
+.issue-title { font-family: Georgia, 'Times New Roman', serif;
+               font-size: 22px; font-weight: 600; line-height: 1.25; color: var(--text);
+               margin: 0 0 8px 0; max-width: 30ch; }
+.issue-editorial-note { font-family: Georgia, 'Times New Roman', serif;
+                        font-size: 12px; color: var(--text-muted); font-style: italic;
+                        margin: 0; max-width: 60ch; }
+
+.issue-intro p { font-family: Georgia, 'Times New Roman', serif;
+                 font-size: 15px; line-height: 1.6; color: var(--text);
+                 margin-bottom: 28px; max-width: 62ch; }
+
+.issue-body { display: flex; flex-direction: column; gap: 36px; }
+
+.highlight-article { padding-bottom: 28px; border-bottom: 1px dashed var(--border); }
+.highlight-article:last-child { border-bottom: none; padding-bottom: 0; }
+.highlight-headline { font-family: Georgia, 'Times New Roman', serif;
+                      font-size: 17px; font-weight: 600; line-height: 1.3; color: var(--text);
+                      margin: 0 0 10px 0; max-width: 40ch; }
+.highlight-lead { font-family: Georgia, 'Times New Roman', serif;
+                  font-size: 14px; font-style: italic; line-height: 1.55;
+                  color: var(--text); margin: 0 0 12px 0; max-width: 62ch; }
+.highlight-body { font-family: Georgia, 'Times New Roman', serif;
+                  font-size: 14px; line-height: 1.65; color: var(--text);
+                  margin: 0 0 14px 0; max-width: 62ch; }
+
+.highlight-meta { font-size: 11px; color: var(--text-subtle);
+                  text-transform: uppercase; letter-spacing: .3px;
+                  margin: 8px 0 4px 0; }
+.highlight-status { color: var(--conditional); font-weight: 600; }
+.highlight-agents { font-size: 12px; color: var(--text-muted); margin: 6px 0 6px 0; }
+.highlight-agent-link { color: var(--accent); }
+.highlight-sources { font-size: 11px; color: var(--text-subtle); margin-top: 6px; }
+.highlight-sources-label { font-style: italic; }
+.highlight-source-link { color: var(--text-muted); }
+.highlight-source-link:hover { color: var(--accent); }
+
+.issue-footer { display: flex; gap: 16px; align-items: center;
+                justify-content: space-between; flex-wrap: wrap;
+                margin-top: 32px; padding-top: 16px;
+                border-top: 1px solid var(--border);
+                font-size: 12px; color: var(--text-muted); }
+.issue-colophon { font-style: italic; }
+.issue-prev-link, .issue-home-link { color: var(--accent); }
+
+/* ── Symposium views scroll with the document ─────────────
+   Original .view is position:fixed + overflow:hidden (Slack-style
+   internal-scroll). For the new flowing views (Home, Community
+   Members, Agent, Issue, Inbox), let content flow and the body
+   scroll normally. */
+#view-home, #view-roster, #view-agent, #view-issue, #view-inbox {
+  position: static;
+  overflow: visible;
+  height: auto;
+}
+#view-home.active, #view-roster.active, #view-agent.active,
+#view-issue.active, #view-inbox.active {
+  display: block;
+}

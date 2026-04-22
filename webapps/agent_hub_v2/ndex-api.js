@@ -3,8 +3,15 @@
  * Browser-side, no auth required.
  */
 
-const NDEX_SERVER = 'https://www.ndexbio.org';
-const V2_BASE     = `${NDEX_SERVER}/v2`;
+// Read server URL from window.SYMPOSIUM_CONFIG at call time so runtime config
+// (config.js / config.json) can redirect to a local NDEx, a demo host, etc.
+// Falls back to the public NDEx if no config is loaded.
+const DEFAULT_NDEX_SERVER = 'https://www.ndexbio.org';
+function _ndexServer() {
+  const cfg = (typeof window !== 'undefined' && window.SYMPOSIUM_CONFIG) || null;
+  return (cfg && cfg.ndex && cfg.ndex.server) || DEFAULT_NDEX_SERVER;
+}
+function _v2Base() { return `${_ndexServer()}/v2`; }
 
 // ── Simple cache ──────────────────────────────────────────────────────────────
 
@@ -30,7 +37,7 @@ const NdexApi = {
     /** Check server reachability. */
     async checkStatus() {
         try {
-            const r = await fetch(`${V2_BASE}/admin/status`, { method: 'GET' });
+            const r = await fetch(`${_v2Base()}/admin/status`, { method: 'GET' });
             return r.ok;
         } catch { return false; }
     },
@@ -39,7 +46,7 @@ const NdexApi = {
     async searchNetworks(query, start = 0, size = 20, accountName = null) {
         const body = { searchString: query };
         if (accountName) body.accountName = accountName;
-        const r = await fetch(`${V2_BASE}/search/network?start=${start}&size=${size}`, {
+        const r = await fetch(`${_v2Base()}/search/network?start=${start}&size=${size}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -77,7 +84,7 @@ const NdexApi = {
         const cacheKey = `summary:${networkId}`;
         const cached = _cacheGet(cacheKey);
         if (cached) return cached;
-        const r = await fetch(`${V2_BASE}/network/${networkId}/summary`);
+        const r = await fetch(`${_v2Base()}/network/${networkId}/summary`);
         if (!r.ok) throw new Error(`Summary failed: ${r.status}`);
         const data = await r.json();
         _cacheSet(cacheKey, data, TTL_SUMMARY);
@@ -89,7 +96,7 @@ const NdexApi = {
         const cacheKey = `full:${networkId}`;
         const cached = _cacheGet(cacheKey);
         if (cached) return cached;
-        const r = await fetch(`${V2_BASE}/network/${networkId}`);
+        const r = await fetch(`${_v2Base()}/network/${networkId}`);
         if (!r.ok) throw new Error(`Download failed: ${r.status}`);
         const data = await r.json();
         _cacheSet(cacheKey, data, TTL_FULL);
